@@ -46,20 +46,20 @@
   };
 </script>
 
-  <meta name="description" content="\Large{本文会持续更新（大概），更新频率不定} const int mod比#define mod更快     ——【洛谷&#x2F;P2396】 for循环比while循环快得多     ——【洛谷&#x2F;P2396】 对于一些建议运算#define比写个函数快（如lowbit）     ——【洛谷&#x2F;P2396】">
+  <meta name="description" content="测评链接 题目大意：给定序列$a_1,a_2…a_n$，重复如下操作直至序列中只剩2个数  选择连续的三个数$a_{i-1},a_i,a_{i+1}$  给$a_{i-1},a_{i+1}$的值加上$a_i$并删去数$a_i$   求最后留下的两个数的和的最小值">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一些奇奇怪怪的经验">
-<meta property="og:url" content="http://zhy12138.github.io/2020/02/02/somefun/index.html">
+<meta property="og:title" content="Add and Remove">
+<meta property="og:url" content="http://zhy12138.github.io/2020/02/07/AGC035D/index.html">
 <meta property="og:site_name" content="zhy12138の『Fraxinus』">
-<meta property="og:description" content="\Large{本文会持续更新（大概），更新频率不定} const int mod比#define mod更快     ——【洛谷&#x2F;P2396】 for循环比while循环快得多     ——【洛谷&#x2F;P2396】 对于一些建议运算#define比写个函数快（如lowbit）     ——【洛谷&#x2F;P2396】">
+<meta property="og:description" content="测评链接 题目大意：给定序列$a_1,a_2…a_n$，重复如下操作直至序列中只剩2个数  选择连续的三个数$a_{i-1},a_i,a_{i+1}$  给$a_{i-1},a_{i+1}$的值加上$a_i$并删去数$a_i$   求最后留下的两个数的和的最小值">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-02-01T18:06:19.000Z">
-<meta property="article:modified_time" content="2020-02-01T18:15:29.293Z">
+<meta property="article:published_time" content="2020-02-07T13:58:17.000Z">
+<meta property="article:modified_time" content="2020-02-07T14:47:28.164Z">
 <meta property="article:author" content="Da&#39;at">
-<meta property="article:tag" content="经验">
+<meta property="article:tag" content="搜索">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://zhy12138.github.io/2020/02/02/somefun/">
+<link rel="canonical" href="http://zhy12138.github.io/2020/02/07/AGC035D/">
 
 
 <script id="page-configurations">
@@ -71,7 +71,7 @@
   };
 </script>
 
-  <title>一些奇奇怪怪的经验 | zhy12138の『Fraxinus』</title>
+  <title>Add and Remove | zhy12138の『Fraxinus』</title>
   
 
 
@@ -177,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://zhy12138.github.io/2020/02/02/somefun/">
+    <link itemprop="mainEntityOfPage" href="http://zhy12138.github.io/2020/02/07/AGC035D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/Itsuka.jpg">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          一些奇奇怪怪的经验
+          Add and Remove
         </h1>
 
         <div class="post-meta">
@@ -201,7 +201,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-02-02 02:06:19 / 修改时间：02:15:29" itemprop="dateCreated datePublished" datetime="2020-02-02T02:06:19+08:00">2020-02-02</time>
+              <time title="创建时间：2020-02-07 21:58:17 / 修改时间：22:47:28" itemprop="dateCreated datePublished" datetime="2020-02-07T21:58:17+08:00">2020-02-07</time>
             </span>
 
           
@@ -215,12 +215,23 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <script type="math/tex; mode=display">
-\Large{本文会持续更新（大概），更新频率不定}</script><ol>
-<li><code>const int mod</code>比<code>#define mod</code>更快     ——【洛谷/P2396】</li>
-<li><code>for</code>循环比<code>while</code>循环快得多     ——【洛谷/P2396】</li>
-<li>对于一些建议运算<code>#define</code>比写个函数快（如<code>lowbit</code>）     ——【洛谷/P2396】</li>
+        <p><a href="https://atcoder.jp/contests/agc035/tasks/agc035_d" target="_blank" rel="noopener">测评链接</a></p>
+<h1 id="题目大意："><a href="#题目大意：" class="headerlink" title="题目大意："></a>题目大意：</h1><p>给定序列$a_1,a_2…a_n$，重复如下操作直至序列中只剩2个数</p>
+<ol>
+<li><p>选择连续的三个数$a_{i-1},a_i,a_{i+1}$</p>
+</li>
+<li><p>给$a_{i-1},a_{i+1}$的值加上$a_i$并删去数$a_i$</p>
+</li>
 </ol>
+<p>求最后留下的两个数的和的最小值</p>
+<a id="more"></a>
+<h1 id="数据范围："><a href="#数据范围：" class="headerlink" title="数据范围："></a>数据范围：</h1><p>$2 \leq n \leq 18,0 \leq a_i \leq 10^9$</p>
+<h1 id="解题过程："><a href="#解题过程：" class="headerlink" title="解题过程："></a>解题过程：</h1><p>发现左右端点永远不会被删且其值只被算了一次，最后被删的数的值被算了2次</p>
+<p>则考虑一段左右端点在删完中间点之前不会被删的区间，设$p(i)$表示$a_i$的值被算的次数</p>
+<p>则易证$p(last)=p(l)+p(r)$</p>
+<p>此时根据这个式子枚举最后一个被删的点，然后分治再枚举就可以了（其实就是个搜索</p>
+<p>$\color{white} {其实我本来想打记忆化，但是数组开不下就打了个没优化的搜索上去，然后就过了…}$</p>
+<h1 id="上代码："><a href="#上代码：" class="headerlink" title="上代码："></a>上代码：</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cmath&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iomanip&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;ctime&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> int long long</span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">int</span> <span class="title">read</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> kkk=<span class="number">0</span>,x=<span class="number">1</span>;</span><br><span class="line">	<span class="keyword">char</span> c=getchar();</span><br><span class="line">	<span class="keyword">while</span>((c&lt;<span class="string">'0'</span> || c&gt;<span class="string">'9'</span>) &amp;&amp; c!=<span class="string">'-'</span>)</span><br><span class="line">		c=getchar();</span><br><span class="line">	<span class="keyword">if</span>(c==<span class="string">'-'</span>)</span><br><span class="line">		c=getchar(),x=<span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">while</span>(c&gt;=<span class="string">'0'</span> &amp;&amp; c&lt;=<span class="string">'9'</span>)</span><br><span class="line">		kkk=(kkk&lt;&lt;<span class="number">3</span>)+(kkk&lt;&lt;<span class="number">1</span>)+(c-<span class="string">'0'</span>),c=getchar();</span><br><span class="line">	<span class="keyword">return</span> kkk*x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">int</span> n,a[<span class="number">19</span>];</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">int</span> <span class="title">fun</span><span class="params">(<span class="keyword">int</span> l,<span class="keyword">int</span> r,<span class="keyword">int</span> nl,<span class="keyword">int</span> nr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(l+<span class="number">1</span>==r)</span><br><span class="line">		<span class="keyword">return</span> nl*a[l]+nr*a[r];</span><br><span class="line">	<span class="keyword">int</span> bck=<span class="number">0x7f7f7f7f7f7f7f7f</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=l+<span class="number">1</span>;i&lt;r;++i)</span><br><span class="line">		bck=min(fun(l,i,nl,nl+nr)+fun(i,r,nl+nr,nr)-a[i]*(nl+nr),bck);</span><br><span class="line">	<span class="keyword">return</span> bck;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">signed</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	n=read();</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;++i)</span><br><span class="line">		a[i]=read();</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"%lld\n"</span>,fun(<span class="number">1</span>,n,<span class="number">1</span>,<span class="number">1</span>));</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125; <span class="comment">//异常的短呢...</span></span><br></pre></td></tr></table></figure>
 
     </div>
 
@@ -243,7 +254,7 @@
       </div>
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E7%BB%8F%E9%AA%8C/" rel="tag"># 经验</a>
+              <a href="/tags/%E6%90%9C%E7%B4%A2/" rel="tag"># 搜索</a>
           </div>
 
         
@@ -252,13 +263,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/02/01/LGP3338/" rel="prev" title="【洛谷/P3338】力">
-      <i class="fa fa-chevron-left"></i> 【洛谷/P3338】力
+    <a href="/2020/02/04/ARC103D/" rel="prev" title="Robot Arms">
+      <i class="fa fa-chevron-left"></i> Robot Arms
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/02/04/ARC103D/" rel="next" title="Robot Arms">
-      Robot Arms <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -318,6 +326,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#题目大意："><span class="nav-text">题目大意：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据范围："><span class="nav-text">数据范围：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解题过程："><span class="nav-text">解题过程：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#上代码："><span class="nav-text">上代码：</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
