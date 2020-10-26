@@ -46,15 +46,15 @@
   };
 </script>
 
-  <meta name="description" content="测评链接 题目大意： 给定$n$个数$q_1,q_2,…q_n$，定义：  F_j&#x3D;\sum^{j-1}_{i&#x3D;1}{\frac{q_i*q_j}{(i-j)^2}}-\sum^n_{i&#x3D;j+1}{\frac{q_i*q_j}{(i-j)^2}} E_i&#x3D;\frac{F_i}{q_i}对$1\leq i \leq n$，求$E_i$的值">
+  <meta name="description" content="测评链接 题目大意： 给定$n$个数$q_1,q_2,…q_n$，定义：  F_j&#x3D;\sum^{j-1}_{i&#x3D;1}{\frac{q_i*q_j}{(i-j)^2}}-\sum^n_{i&#x3D;j+1}{\frac{q_i*q_j}{(i-j)^2}} E_i&#x3D;\frac{F_i}{q_i}对$1\leq i \leq n$，求$E_i$的值。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【洛谷&#x2F;P3338】力">
 <meta property="og:url" content="http://zhy12138.github.io/2020/02/01/LGP3338/index.html">
 <meta property="og:site_name" content="zhy12138の『Fraxinus』">
-<meta property="og:description" content="测评链接 题目大意： 给定$n$个数$q_1,q_2,…q_n$，定义：  F_j&#x3D;\sum^{j-1}_{i&#x3D;1}{\frac{q_i*q_j}{(i-j)^2}}-\sum^n_{i&#x3D;j+1}{\frac{q_i*q_j}{(i-j)^2}} E_i&#x3D;\frac{F_i}{q_i}对$1\leq i \leq n$，求$E_i$的值">
+<meta property="og:description" content="测评链接 题目大意： 给定$n$个数$q_1,q_2,…q_n$，定义：  F_j&#x3D;\sum^{j-1}_{i&#x3D;1}{\frac{q_i*q_j}{(i-j)^2}}-\sum^n_{i&#x3D;j+1}{\frac{q_i*q_j}{(i-j)^2}} E_i&#x3D;\frac{F_i}{q_i}对$1\leq i \leq n$，求$E_i$的值。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-01-31T19:47:26.000Z">
-<meta property="article:modified_time" content="2020-02-07T14:44:40.806Z">
+<meta property="article:modified_time" content="2020-10-26T16:36:37.106Z">
 <meta property="article:author" content="Da&#39;at">
 <meta property="article:tag" content="FFT">
 <meta property="article:tag" content="洛谷">
@@ -143,17 +143,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">6</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">7</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">1</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">2</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">5</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">6</span></a>
 
   </li>
   </ul>
@@ -208,7 +208,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-02-07 22:44:40" itemprop="dateModified" datetime="2020-02-07T22:44:40+08:00">2020-02-07</time>
+                <time title="修改时间：2020-10-27 00:36:37" itemprop="dateModified" datetime="2020-10-27T00:36:37+08:00">2020-10-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -237,9 +237,9 @@
 <h1 id="题目大意："><a href="#题目大意：" class="headerlink" title="题目大意："></a>题目大意：</h1><p> 给定$n$个数$q_1,q_2,…q_n$，定义：</p>
 <script type="math/tex; mode=display">
 F_j=\sum^{j-1}_{i=1}{\frac{q_i*q_j}{(i-j)^2}}-\sum^n_{i=j+1}{\frac{q_i*q_j}{(i-j)^2}}</script><script type="math/tex; mode=display">
-E_i=\frac{F_i}{q_i}</script><p>对$1\leq i \leq n$，求$E_i$的值</p>
+E_i=\frac{F_i}{q_i}</script><p>对$1\leq i \leq n$，求$E_i$的值。</p>
 <a id="more"></a>
-<h1 id="数据范围"><a href="#数据范围" class="headerlink" title="数据范围"></a>数据范围</h1><p>对于$100\%$的数据，$1 \leq n \leq 10^5,0&lt;q_i&lt;10^9$</p>
+<h1 id="数据范围"><a href="#数据范围" class="headerlink" title="数据范围"></a>数据范围</h1><p>对于$100\%$的数据，$1 \leq n \leq 10^5,0&lt;q_i&lt;10^9$。</p>
 <h1 id="解题过程："><a href="#解题过程：" class="headerlink" title="解题过程："></a>解题过程：</h1><p>根据题意：</p>
 <script type="math/tex; mode=display">
 E_j=\frac{F_j}{q_j}</script><script type="math/tex; mode=display">
@@ -251,25 +251,25 @@ E_j=\sum^{j-1}_{i=1}{A_i*B_{j-i}}-\sum^{n}_{i=j+1}{A_i*B_{i-j}}</script><p>考�
 <blockquote>
 <p>卷积：形如$\sum^{n-1}_1{F_i*G_{n-i}}$的式子</p>
 </blockquote>
-<p>显然原式已有一部分为卷积形式，那么考虑另一部分</p>
+<p>显然原式已有一部分为卷积形式，那么考虑另一部分。</p>
 <p>考虑将序列倒转，倒转后的序列满足$C_i=A_{n-i+1}$，则原式：</p>
 <script type="math/tex; mode=display">
 \sum^{n}_{i=j+1}{A_i*B_{i-j}}</script><p>可化为卷积：</p>
 <script type="math/tex; mode=display">
 \sum^{n-j}_{i=1}{C_i*B_{(n-j+1)-i}}</script><p>最终得到的就是：</p>
 <script type="math/tex; mode=display">
-E_j=\sum^{j-1}_{i=1}{A_i*B_{j-i}}+\sum^{n-j}_{i=1}{C_i*B_{(n-j+1)-i}}</script><h1 id="算法优化："><a href="#算法优化：" class="headerlink" title="算法优化："></a>算法优化：</h1><p>现在这个算法的时间复杂度仍是$\Theta(n^2)$，似乎与暴力没什么区别</p>
-<p>但是长度连续的一串卷积除了一个个枚举外，还可以用FFT加以优化</p>
+E_j=\sum^{j-1}_{i=1}{A_i*B_{j-i}}+\sum^{n-j}_{i=1}{C_i*B_{(n-j+1)-i}}</script><h1 id="算法优化："><a href="#算法优化：" class="headerlink" title="算法优化："></a>算法优化：</h1><p>现在这个算法的时间复杂度仍是$\Theta(n^2)$，似乎与暴力没什么区别。</p>
+<p>但是长度连续的一串卷积除了一个个枚举外，还可以用FFT加以优化。</p>
 <p>假设要求卷积$\sum^{n-1}_{i=1}{a_i*b_{n-i}}$（我喜欢称为长度为$n-1$的卷积）</p>
 <p>那么构造两个多项式：</p>
 <script type="math/tex; mode=display">
 A_n=a_1+a_2x+a_3x^2+...+a_nx^{n-1}</script><script type="math/tex; mode=display">
-B_n=b_1+b_2x+b_3x^2+...+b_nx^{n-1}</script><p>那么将两个式子相乘前n项的系数分别对应长度为$1$~$n$的卷积的值</p>
-<p>那么上面那个卷积的值即为$A_n*B_n$的第$n-1$项</p>
-<p>此时时间复杂度降为$\Theta(n\log_2n)$</p>
+B_n=b_1+b_2x+b_3x^2+...+b_nx^{n-1}</script><p>那么将两个式子相乘前n项的系数分别对应长度为$1$~$n$的卷积的值。</p>
+<p>那么上面那个卷积的值即为$A_n*B_n$的第$n-1$项。</p>
+<p>此时时间复杂度降为$\Theta(n\log_2n)$。</p>
 <p>回到题目，设:</p>
 <script type="math/tex; mode=display">
-L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
+L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$。</p>
 <h1 id="上代码："><a href="#上代码：" class="headerlink" title="上代码："></a>上代码：</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdlib&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstdio&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cmath&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iomanip&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;algorithm&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;ctime&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">double</span> pi=<span class="built_in">acos</span>(<span class="number">-1</span>);</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">int</span> <span class="title">read</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> kkk=<span class="number">0</span>,x=<span class="number">1</span>;</span><br><span class="line">	<span class="keyword">char</span> c=getchar();</span><br><span class="line">	<span class="keyword">while</span>((c&lt;<span class="string">'0'</span> || c&gt;<span class="string">'9'</span>) &amp;&amp; c!=<span class="string">'-'</span>)</span><br><span class="line">		c=getchar();</span><br><span class="line">	<span class="keyword">if</span>(c==<span class="string">'-'</span>)</span><br><span class="line">		c=getchar(),x=<span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">while</span>(c&gt;=<span class="string">'0'</span> &amp;&amp; c&lt;=<span class="string">'9'</span>)</span><br><span class="line">		kkk=(kkk&lt;&lt;<span class="number">3</span>)+(kkk&lt;&lt;<span class="number">1</span>)+(c-<span class="string">'0'</span>),c=getchar();</span><br><span class="line">	<span class="keyword">return</span> kkk*x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">complex</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="keyword">double</span> x,y; <span class="comment">//x+yi</span></span><br><span class="line">	<span class="built_in">complex</span>(<span class="keyword">double</span> xx=<span class="number">0</span>,<span class="keyword">double</span> yy=<span class="number">0</span>)&#123;x=xx,y=yy;&#125;</span><br><span class="line">&#125;a[<span class="number">300001</span>],b[<span class="number">300001</span>],c[<span class="number">300001</span>];</span><br><span class="line"><span class="built_in">complex</span> <span class="keyword">operator</span> +(<span class="built_in">complex</span> x,<span class="built_in">complex</span> y)&#123;<span class="keyword">return</span> <span class="built_in">complex</span>(x.x+y.x,x.y+y.y);&#125;</span><br><span class="line"><span class="built_in">complex</span> <span class="keyword">operator</span> -(<span class="built_in">complex</span> x,<span class="built_in">complex</span> y)&#123;<span class="keyword">return</span> <span class="built_in">complex</span>(x.x-y.x,x.y-y.y);&#125;</span><br><span class="line"><span class="built_in">complex</span> <span class="keyword">operator</span> *(<span class="built_in">complex</span> x,<span class="built_in">complex</span> y)&#123;<span class="keyword">return</span> <span class="built_in">complex</span>(x.x*y.x-x.y*y.y,x.y*y.x+x.x*y.y);&#125;</span><br><span class="line"><span class="keyword">int</span> n,lim,LOG,zone[<span class="number">300001</span>];</span><br><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">void</span> <span class="title">FFT</span><span class="params">(<span class="built_in">complex</span> *A,<span class="keyword">int</span> type)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;lim;++i)</span><br><span class="line">		<span class="keyword">if</span>(zone[i]&gt;i)</span><br><span class="line">			swap(A[i],A[zone[i]]);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> len=<span class="number">1</span>;len&lt;lim;len*=<span class="number">2</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="function"><span class="built_in">complex</span> <span class="title">wn</span><span class="params">(<span class="built_in">cos</span>(pi/len),type*<span class="built_in">sin</span>(pi/len))</span></span>;</span><br><span class="line">		<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> bj=<span class="number">0</span>;bj&lt;lim;bj+=<span class="number">2</span>*len)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="function"><span class="built_in">complex</span> <span class="title">w</span><span class="params">(<span class="number">1</span>,<span class="number">0</span>)</span></span>;</span><br><span class="line">			<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;len;++i,w=w*wn)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="built_in">complex</span> A0=A[bj+i],A1=w*A[bj+i+len];</span><br><span class="line">				A[bj+i]=A0+A1;</span><br><span class="line">				A[bj+i+len]=A0-A1;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	n=read();</span><br><span class="line">	LOG=<span class="built_in">ceil</span>(log2(n*<span class="number">2</span>));</span><br><span class="line">	lim=(<span class="number">1</span>&lt;&lt;LOG);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;lim;++i)</span><br><span class="line">		zone[i]=((zone[i&gt;&gt;<span class="number">1</span>]&gt;&gt;<span class="number">1</span>) | ((i&amp;<span class="number">1</span>)&lt;&lt;(LOG<span class="number">-1</span>)));</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;++i) <span class="comment">//FFT习惯从0开始，结果留了一堆关于下标的烂摊子到后面</span></span><br><span class="line">		<span class="built_in">scanf</span>(<span class="string">"%lf"</span>,&amp;a[i].x),c[n-i<span class="number">-1</span>].x=a[i].x;</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">1</span>;i&lt;=n;++i)</span><br><span class="line">		b[i<span class="number">-1</span>].x=(<span class="keyword">double</span>)<span class="number">1.0</span>/i/i;</span><br><span class="line">	FFT(a,<span class="number">1</span>);</span><br><span class="line">	FFT(b,<span class="number">1</span>);</span><br><span class="line">	FFT(c,<span class="number">1</span>);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;lim;++i)</span><br><span class="line">	&#123;</span><br><span class="line">		a[i]=a[i]*b[i];</span><br><span class="line">		c[i]=c[i]*b[i];</span><br><span class="line">	&#125;</span><br><span class="line">	FFT(a,<span class="number">-1</span>);</span><br><span class="line">	FFT(c,<span class="number">-1</span>);</span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">register</span> <span class="keyword">int</span> i=<span class="number">0</span>;i&lt;n;++i) <span class="comment">//这里处理得就很别扭</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">double</span> ans=<span class="number">0</span>;</span><br><span class="line">		<span class="keyword">if</span>(i!=<span class="number">0</span>)</span><br><span class="line">			ans+=a[i<span class="number">-1</span>].x/lim;</span><br><span class="line">		<span class="keyword">if</span>(i!=n<span class="number">-1</span>)</span><br><span class="line">			ans-=c[n-i<span class="number">-2</span>].x/lim;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">"%.3lf\n"</span>,ans);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
     </div>
 
@@ -307,8 +307,8 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
       <i class="fa fa-chevron-left"></i> The New Blog
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/02/02/somefun/" rel="next" title="一些奇奇怪怪的经验">
-      一些奇奇怪怪的经验 <i class="fa fa-chevron-right"></i>
+    <a href="/2020/02/04/ARC103D/" rel="next" title="Robot Arms">
+      Robot Arms <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -385,20 +385,20 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
