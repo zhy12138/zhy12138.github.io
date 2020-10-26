@@ -25,12 +25,12 @@
     version: '7.7.0',
     exturl: false,
     sidebar: {"position":"right","display":"always","padding":18,"offset":12,"onmobile":false},
-    copycode: {"enable":false,"show_result":false,"style":null},
+    copycode: {"enable":"ture","show_result":true,"style":"default"},
     back2top: {"enable":true,"sidebar":true,"scrollpercent":true},
     bookmark: {"enable":false,"color":"#222","save":"auto"},
     fancybox: false,
     mediumzoom: false,
-    lazyload: false,
+    lazyload: true,
     pangu: false,
     comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
     algolia: {
@@ -183,7 +183,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/Itsuka.jpg">
       <meta itemprop="name" content="Da'at">
-      <meta itemprop="description" content="天不生吾辈 万古如长夜">
+      <meta itemprop="description" content="人不为己 天诛地灭">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -283,7 +283,7 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
 
     
 
-        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束，感谢您的阅读-------------</div>
+        <div style="text-align:center;color: #000;font-size:18px;">------------------本文结束，感谢您的阅读------------------</div>
 
     
 
@@ -291,9 +291,10 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
         
       </div>
       <footer class="post-footer">
+          
           <div class="post-tags">
-              <a href="/tags/FFT/" rel="tag"># FFT</a>
-              <a href="/tags/%E6%B4%9B%E8%B0%B7/" rel="tag"># 洛谷</a>
+              <a href="/tags/FFT/" rel="tag"><i class="fa fa-tag"></i> FFT</a>
+              <a href="/tags/%E6%B4%9B%E8%B0%B7/" rel="tag"><i class="fa fa-tag"></i> 洛谷</a>
           </div>
 
         
@@ -377,7 +378,7 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
     <img class="site-author-image" itemprop="image" alt="Da'at"
       src="/images/Itsuka.jpg">
   <p class="site-author-name" itemprop="name">Da'at</p>
-  <div class="site-description" itemprop="description">天不生吾辈 万古如长夜</div>
+  <div class="site-description" itemprop="description">人不为己 天诛地灭</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -464,6 +465,7 @@ L=A*B,R=B*C</script><p>则$E_i=L_{i-1}-R_{n-i}$</p>
 
   
   <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
 
