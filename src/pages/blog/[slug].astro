@@ -539,15 +539,16 @@ const toc = headings.map((heading) => {
     }
 
     .content :global(.quiz-question label) {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 14px;
+      display: block;
+      position: relative;
+      min-width: 0;
+      padding: 12px 14px 12px 40px;
       border: 1px solid rgba(20, 103, 216, 0.14);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.86);
       color: var(--text);
       line-height: 1.65;
+      overflow-wrap: anywhere;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(42, 88, 138, 0.04);
     }
@@ -574,10 +575,12 @@ const toc = headings.map((heading) => {
     }
 
     .content :global(.quiz-question input[type='radio']) {
+      position: absolute;
+      top: 18px;
+      left: 14px;
       width: 16px;
       height: 16px;
-      margin: 6px 0 0;
-      flex: 0 0 auto;
+      margin: 0;
       accent-color: var(--primary);
     }
 
@@ -684,6 +687,16 @@ const toc = headings.map((heading) => {
 
       .content :global(.quiz-question) {
         padding: 20px 16px 18px;
+      }
+
+      .content :global(.quiz-question label) {
+        padding: 11px 12px 11px 36px;
+        font-size: 0.96rem;
+      }
+
+      .content :global(.quiz-question input[type='radio']) {
+        top: 17px;
+        left: 12px;
       }
     }
   </style>
