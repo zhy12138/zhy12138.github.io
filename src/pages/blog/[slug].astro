@@ -1,0 +1,690 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts
+    .filter((post) => !post.data.draft)
+    .map((post) => ({
+      params: { slug: post.id.replace(/\.mdx?$/, '') },
+      props: { post },
+    }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const headingCounters = [0, 0, 0, 0, 0, 0];
+const toc = headings.map((heading) => {
+  const index = heading.depth - 1;
+  headingCounters[index] += 1;
+  headingCounters.fill(0, index + 1);
+
+  return {
+    ...heading,
+    number: headingCounters.slice(0, index + 1).filter(Boolean).join('.'),
+  };
+});
+---
+
+<BaseLayout title={`${post.data.title} | zhy12138`} description={post.data.description}>
+  <div class="article-layout">
+    <article class="article">
+      <header>
+        <a class="back" href="/blog/">返回 Blog</a>
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString('zh-CN')}
+        </time>
+        <h1>{post.data.title}</h1>
+        {post.data.description && <p>{post.data.description}</p>}
+      </header>
+      <div class="content" id="article-content">
+        <Content />
+      </div>
+    </article>
+
+    <aside class="article-aside" aria-label="文章目录">
+      <div class="reading-card">
+        <div class="progress-head">
+          <span>阅读进度</span>
+          <strong id="reading-percent">0%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span id="reading-progress"></span>
+        </div>
+      </div>
+
+      {
+        toc.length > 0 && (
+          <nav class="toc" aria-label="目录">
+            <p>目录</p>
+            <ol>
+              {toc.map((heading) => (
+                <li class={`depth-${heading.depth}`}>
+                  <a href={`#${heading.slug}`}>
+                    <span class="toc-number">{heading.number}</span>
+                    <span>{heading.text}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+    </aside>
+  </div>
+
+  <script>
+    const progressBar = document.querySelector<HTMLElement>('#reading-progress');
+    const progressPercent = document.querySelector<HTMLElement>('#reading-percent');
+    const article = document.querySelector<HTMLElement>('#article-content');
+    const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+    function getHashId(link: Element) {
+      const href = link.getAttribute('href');
+      return href?.startsWith('#') ? decodeURIComponent(href.slice(1)) : '';
+    }
+
+    const headings = tocLinks
+      .map((link) => document.getElementById(getHashId(link)))
+      .filter((heading): heading is HTMLElement => Boolean(heading));
+
+    let updateFrame = 0;
+
+    function updateArticleState() {
+      if (!article || !progressBar || !progressPercent) return;
+
+      const rect = article.getBoundingClientRect();
+      const readable = Math.max(1, rect.height - window.innerHeight);
+      const progress = Math.min(1, Math.max(0, -rect.top / readable));
+      const percent = Math.round(progress * 100);
+
+      progressBar.style.width = `${percent}%`;
+      progressPercent.textContent = `${percent}%`;
+
+      let activeId = '';
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top <= 120) {
+          activeId = heading.id;
+        }
+      }
+
+      let activeLink: Element | undefined;
+      tocLinks.forEach((link) => {
+        const isActive = getHashId(link) === activeId;
+        if (isActive) activeLink = link;
+        if (isActive) {
+          link.setAttribute('aria-current', 'true');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+      activeLink?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function scheduleArticleStateUpdate() {
+      if (updateFrame) return;
+      updateFrame = window.requestAnimationFrame(() => {
+        updateFrame = 0;
+        updateArticleState();
+      });
+    }
+
+    function renderQuizMath() {
+      if (!('renderMathInElement' in window)) return;
+      const renderMath = window.renderMathInElement as typeof import('katex/contrib/auto-render');
+
+      document.querySelectorAll<HTMLElement>('.quiz-explanation').forEach((element) => {
+        renderMath(element, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true },
+          ],
+          throwOnError: false,
+        });
+      });
+    }
+
+    function markQuizOption(question: Element, value: string | null, className: string) {
+      if (!value) return;
+      const input = question.querySelector<HTMLInputElement>(`input[value="${CSS.escape(value)}"]`);
+      input?.closest('label')?.classList.add(className);
+    }
+
+    function lockQuiz(question: Element) {
+      question.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+        input.disabled = true;
+      });
+      const actions = question.querySelector<HTMLElement>('.quiz-actions');
+      if (actions) actions.hidden = true;
+    }
+
+    document.querySelectorAll('.quiz-question').forEach((question) => {
+      const answer = question.getAttribute('data-answer');
+      const submitButton = question.querySelector('.submit-answer');
+      const showButton = question.querySelector('.show-answer');
+      const result = question.querySelector<HTMLElement>('.quiz-result');
+      const explanation = question.querySelector<HTMLElement>('.quiz-explanation');
+
+      submitButton?.addEventListener('click', () => {
+        const selected = question.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+        if (!result || !explanation) return;
+
+        result.hidden = false;
+
+        if (!selected) {
+          result.textContent = '请先选择一个答案。';
+          result.className = 'quiz-result is-warning';
+          explanation.hidden = true;
+          return;
+        }
+
+        const isCorrect = selected.getAttribute('value') === answer;
+        result.textContent = isCorrect ? '正确。' : '错误。';
+        result.className = isCorrect ? 'quiz-result is-correct' : 'quiz-result is-wrong';
+        markQuizOption(question, answer, 'is-correct-option');
+        if (!isCorrect) {
+          markQuizOption(question, selected.getAttribute('value'), 'is-wrong-option');
+        }
+        explanation.hidden = false;
+        lockQuiz(question);
+      });
+
+      showButton?.addEventListener('click', () => {
+        if (!result || !explanation) return;
+
+        result.hidden = false;
+        result.textContent = '已显示答案。';
+        result.className = 'quiz-result is-revealed';
+        markQuizOption(question, answer, 'is-correct-option');
+        explanation.hidden = false;
+        lockQuiz(question);
+      });
+    });
+
+    scheduleArticleStateUpdate();
+    if (document.readyState === 'complete') {
+      renderQuizMath();
+    } else {
+      window.addEventListener('load', renderQuizMath, { once: true });
+    }
+    window.addEventListener('load', scheduleArticleStateUpdate, { once: true });
+    window.addEventListener('scroll', scheduleArticleStateUpdate, { passive: true });
+    window.addEventListener('resize', scheduleArticleStateUpdate);
+    window.addEventListener('hashchange', scheduleArticleStateUpdate);
+  </script>
+
+  <style>
+    .article-layout {
+      position: relative;
+      padding: 42px 0 24px;
+    }
+
+    .article {
+      max-width: 860px;
+      min-width: 0;
+      margin: 0 auto;
+    }
+
+    .back {
+      display: inline-flex;
+      margin-bottom: 22px;
+      color: var(--primary);
+      font-weight: 720;
+    }
+
+    time {
+      display: block;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    h1 {
+      margin: 12px 0 0;
+      font-size: clamp(2.1rem, 7vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.75;
+    }
+
+    .content {
+      margin-top: 36px;
+      padding-top: 26px;
+      border-top: 1px solid var(--line);
+      counter-reset: article-h1;
+      line-height: 1.86;
+    }
+
+    .content :global(h1) {
+      counter-increment: article-h1;
+      counter-reset: article-h2;
+    }
+
+    .content :global(h2) {
+      counter-increment: article-h2;
+      counter-reset: article-h3;
+    }
+
+    .content :global(h3) {
+      counter-increment: article-h3;
+      counter-reset: article-h4;
+    }
+
+    .content :global(h4) {
+      counter-increment: article-h4;
+      counter-reset: article-h5;
+    }
+
+    .content :global(h5) {
+      counter-increment: article-h5;
+      counter-reset: article-h6;
+    }
+
+    .content :global(h6) {
+      counter-increment: article-h6;
+    }
+
+    .content :global(h1)::before,
+    .content :global(h2)::before,
+    .content :global(h3)::before,
+    .content :global(h4)::before,
+    .content :global(h5)::before,
+    .content :global(h6)::before {
+      display: inline-block;
+      margin-right: 0.5em;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .content :global(h1)::before {
+      content: counter(article-h1) '.';
+    }
+
+    .content :global(h2)::before {
+      content: counter(article-h1) '.' counter(article-h2);
+    }
+
+    .content :global(h3)::before {
+      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3);
+    }
+
+    .content :global(h4)::before {
+      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
+        counter(article-h4);
+    }
+
+    .content :global(h5)::before {
+      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
+        counter(article-h4) '.' counter(article-h5);
+    }
+
+    .content :global(h6)::before {
+      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
+        counter(article-h4) '.' counter(article-h5) '.' counter(article-h6);
+    }
+
+    .content :global(h2) {
+      margin-top: 1.7em;
+      font-size: 1.22rem;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    .content :global(h1) {
+      margin-top: 2em;
+      font-size: 1.55rem;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    .content :global(p) {
+      margin: 1.1em 0;
+    }
+
+    .content :global(a) {
+      color: var(--primary-strong);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    .content :global(code) {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(20, 103, 216, 0.08);
+      color: var(--primary-strong);
+      font-size: 0.92em;
+    }
+
+    .content :global(.katex-display) {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 8px 0;
+    }
+
+    .article-aside {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 220px;
+      height: calc(100vh - 48px);
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    .reading-card,
+    .toc {
+      border: 1px solid rgba(220, 232, 245, 0.72);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.66);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 26px rgba(42, 88, 138, 0.06);
+    }
+
+    .reading-card {
+      flex: 0 0 auto;
+      padding: 14px;
+    }
+
+    .progress-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .progress-head strong {
+      color: var(--primary-strong);
+      font-size: 0.95rem;
+    }
+
+    .progress-track {
+      height: 8px;
+      margin-top: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(20, 103, 216, 0.1);
+    }
+
+    .progress-track span {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 120ms ease;
+    }
+
+    .toc {
+      min-height: 0;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .toc p {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .toc ol {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .toc a {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      border-left: 3px solid transparent;
+      padding: 7px 8px;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .toc-number {
+      flex: 0 0 auto;
+      color: var(--accent);
+      font-size: 0.82em;
+      font-variant-numeric: tabular-nums;
+      font-weight: 760;
+    }
+
+    .toc .depth-2 a {
+      padding-left: 18px;
+      font-size: 0.82rem;
+    }
+
+    .toc .depth-3 a,
+    .toc .depth-4 a,
+    .toc .depth-5 a,
+    .toc .depth-6 a {
+      padding-left: 32px;
+      font-size: 0.8rem;
+    }
+
+    .toc a:hover,
+    .toc a:focus-visible {
+      color: var(--primary-strong);
+      background: rgba(20, 103, 216, 0.08);
+      outline: none;
+    }
+
+    .toc a[aria-current='true'] {
+      color: var(--primary-strong);
+      border-left-color: var(--primary);
+      background: rgba(20, 103, 216, 0.16);
+      outline: none;
+      font-weight: 760;
+      box-shadow: inset 0 0 0 1px rgba(20, 103, 216, 0.16);
+    }
+
+    .toc a[aria-current='true'] .toc-number {
+      color: var(--primary-strong);
+    }
+
+    .content :global(.quiz-question) {
+      position: relative;
+      overflow: hidden;
+      margin: 22px 0;
+      padding: 22px 20px 20px;
+      border: 1px solid rgba(20, 103, 216, 0.24);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(235, 247, 255, 0.78), rgba(255, 255, 255, 0.94) 46%),
+        rgba(255, 255, 255, 0.92);
+      box-shadow: 0 16px 36px rgba(42, 88, 138, 0.12);
+    }
+
+    .content :global(.quiz-question::before) {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .content :global(.quiz-question > p:first-child) {
+      margin: 0 0 16px;
+      color: var(--text);
+      font-size: 1.02rem;
+      font-weight: 720;
+      line-height: 1.65;
+    }
+
+    .content :global(.quiz-question > p:has(label)) {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+    }
+
+    .content :global(.quiz-question label) {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(20, 103, 216, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--text);
+      line-height: 1.65;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(42, 88, 138, 0.04);
+    }
+
+    .content :global(.quiz-question label:hover) {
+      border-color: rgba(20, 103, 216, 0.4);
+      background: rgba(235, 247, 255, 0.92);
+    }
+
+    .content :global(.quiz-question label:has(input:disabled)) {
+      cursor: default;
+    }
+
+    .content :global(.quiz-question label.is-correct-option) {
+      border-color: rgba(0, 167, 181, 0.55);
+      background: rgba(0, 167, 181, 0.12);
+      color: #005f68;
+    }
+
+    .content :global(.quiz-question label.is-wrong-option) {
+      border-color: rgba(214, 69, 65, 0.42);
+      background: rgba(214, 69, 65, 0.1);
+      color: #9b2f2b;
+    }
+
+    .content :global(.quiz-question input[type='radio']) {
+      width: 16px;
+      height: 16px;
+      margin: 6px 0 0;
+      flex: 0 0 auto;
+      accent-color: var(--primary);
+    }
+
+    .content :global(.quiz-actions) {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .content :global(.quiz-actions[hidden]) {
+      display: none;
+    }
+
+    .content :global(.quiz-actions button) {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text);
+      font: inherit;
+      font-weight: 720;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(42, 88, 138, 0.08);
+    }
+
+    .content :global(.quiz-actions .submit-answer) {
+      border-color: transparent;
+      background: var(--primary);
+      color: white;
+    }
+
+    .content :global(.quiz-actions button:hover),
+    .content :global(.quiz-actions button:focus-visible) {
+      border-color: rgba(20, 103, 216, 0.35);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .content :global(.quiz-result) {
+      margin: 14px 0 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(20, 103, 216, 0.08);
+      color: var(--primary-strong);
+      font-weight: 760;
+    }
+
+    .content :global(.quiz-result.is-correct) {
+      background: rgba(0, 167, 181, 0.12);
+      color: #00727c;
+    }
+
+    .content :global(.quiz-result.is-wrong) {
+      background: rgba(255, 180, 84, 0.18);
+      color: #8f5200;
+    }
+
+    .content :global(.quiz-result.is-warning) {
+      background: rgba(255, 180, 84, 0.14);
+      color: #8f5200;
+    }
+
+    .content :global(.quiz-explanation) {
+      margin: 10px 0 0;
+      padding: 12px 14px;
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: rgba(0, 167, 181, 0.08);
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .content :global(pre:has(code.language-html)) {
+      display: none;
+    }
+
+    @media (max-width: 1519px) {
+      .article-aside {
+        display: none;
+      }
+    }
+
+    @media (min-width: 1520px) {
+      .article-layout {
+        padding-left: 260px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .article-layout {
+        padding-top: 24px;
+      }
+
+      .toc ol {
+        grid-template-columns: 1fr;
+      }
+
+      .content :global(.quiz-actions),
+      .content :global(.quiz-actions button) {
+        width: 100%;
+      }
+
+      .content :global(.quiz-question) {
+        padding: 20px 16px 18px;
+      }
+    }
+  </style>
+</BaseLayout>

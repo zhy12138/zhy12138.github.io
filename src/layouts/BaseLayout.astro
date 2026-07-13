@@ -1,0 +1,354 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'zhy12138 的个人网站与 Markdown 博客。',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/katex/katex.min.css" />
+    <script is:inline defer src="/katex/katex.min.js"></script>
+    <script is:inline defer src="/katex/contrib/auto-render.min.js"></script>
+    <title>{title}</title>
+    <style is:global>
+      :root {
+        color-scheme: light;
+        --bg: #f7fbff;
+        --panel: #ffffff;
+        --text: #142033;
+        --muted: #5c697a;
+        --line: #dce8f5;
+        --primary: #1467d8;
+        --primary-strong: #0b4ea8;
+        --accent: #00a7b5;
+        --warm: #ffb454;
+        --shadow: 0 18px 45px rgba(42, 88, 138, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--text);
+        background:
+          linear-gradient(120deg, rgba(20, 103, 216, 0.08), transparent 38%),
+          linear-gradient(240deg, rgba(0, 167, 181, 0.08), transparent 42%),
+          var(--bg);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        content: "";
+        background-image:
+          linear-gradient(rgba(20, 103, 216, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(20, 103, 216, 0.07) 1px, transparent 1px);
+        background-size: 40px 40px;
+        mask-image: linear-gradient(to bottom, #000 0%, transparent 75%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .site-shell {
+        width: min(1080px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 24px 0;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        font-weight: 750;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--primary);
+        box-shadow: 0 8px 24px rgba(20, 103, 216, 0.12);
+      }
+
+      .brand-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .site-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .site-nav a {
+        padding: 9px 12px;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .site-nav a:hover,
+      .site-nav a:focus-visible {
+        color: var(--primary-strong);
+        background: rgba(20, 103, 216, 0.08);
+        outline: none;
+      }
+
+      main {
+        padding: 28px 0 56px;
+      }
+
+      .site-footer {
+        padding: 28px 0 36px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .music-player {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 20;
+      }
+
+      .music-player__toggle,
+      .music-player__refresh,
+      .music-player__close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(220, 232, 245, 0.9);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--text);
+        box-shadow: 0 10px 30px rgba(42, 88, 138, 0.14);
+        cursor: pointer;
+        font: inherit;
+      }
+
+      .music-player__toggle {
+        min-width: 56px;
+        min-height: 38px;
+        padding: 8px 14px;
+        color: var(--primary-strong);
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .music-player__toggle:hover,
+      .music-player__toggle:focus-visible,
+      .music-player__refresh:hover,
+      .music-player__refresh:focus-visible,
+      .music-player__close:hover,
+      .music-player__close:focus-visible {
+        border-color: rgba(20, 103, 216, 0.24);
+        background: rgba(255, 255, 255, 0.96);
+        outline: none;
+      }
+
+      .music-player__panel {
+        display: none;
+        position: relative;
+        width: 330px;
+        height: 110px;
+        overflow: hidden;
+        border: 1px solid rgba(220, 232, 245, 0.9);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: var(--shadow);
+      }
+
+      .music-player[data-open="true"] .music-player__toggle {
+        display: none;
+      }
+
+      .music-player[data-open="true"] .music-player__panel {
+        display: block;
+      }
+
+      .music-player__frame {
+        width: 330px;
+        height: 110px;
+        border: 0;
+      }
+
+      .music-player__refresh,
+      .music-player__close {
+        position: absolute;
+        top: 6px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .music-player__refresh {
+        right: 36px;
+      }
+
+      .music-player__close {
+        right: 6px;
+      }
+
+      @media (max-width: 640px) {
+        .site-shell {
+          width: min(100% - 24px, 1080px);
+        }
+
+        .site-header {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .site-nav {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .music-player {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header site-shell">
+      <a class="brand" href="/" aria-label="返回首页">
+        <span class="brand-mark">Z</span>
+        <span class="brand-text">zhy12138</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="/">首页</a>
+        <a href="/blog/">Blog</a>
+        <a href="https://github.com/zhy12138" rel="noreferrer">GitHub</a>
+      </nav>
+    </header>
+    <main class="site-shell">
+      <slot />
+    </main>
+    <footer class="site-footer site-shell">
+      <span>© {new Date().getFullYear()} zhy12138</span>
+    </footer>
+    <aside class="music-player" data-open="false" aria-label="音乐播放器">
+      <button class="music-player__toggle" type="button" aria-expanded="false">
+        音乐
+      </button>
+      <div class="music-player__panel">
+        <button class="music-player__refresh" type="button" aria-label="刷新音乐播放器">
+          ↻
+        </button>
+        <button class="music-player__close" type="button" aria-label="收起音乐播放器">
+          ×
+        </button>
+        <iframe
+          class="music-player__frame"
+          title="网易云音乐播放器"
+          data-src="https://music.163.com/outchain/player?type=1&id=351343250&auto=0&height=90"
+          allow="autoplay; encrypted-media"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </aside>
+    <script is:inline>
+      const musicPlayer = document.querySelector(".music-player");
+      const musicToggle = musicPlayer?.querySelector(".music-player__toggle");
+      const musicRefresh = musicPlayer?.querySelector(".music-player__refresh");
+      const musicClose = musicPlayer?.querySelector(".music-player__close");
+      const musicFrame = musicPlayer?.querySelector(".music-player__frame");
+      const maxMusicRetries = 3;
+      let musicRetries = 0;
+      let musicLoadTimer;
+
+      const clearMusicLoadTimer = () => {
+        if (!musicLoadTimer) return;
+        window.clearTimeout(musicLoadTimer);
+        musicLoadTimer = undefined;
+      };
+
+      const loadMusicFrame = () => {
+        if (!musicFrame?.dataset.src) return;
+        if (musicFrame.getAttribute("src") === musicFrame.dataset.src) return;
+        clearMusicLoadTimer();
+        musicFrame.src = musicFrame.dataset.src;
+        musicLoadTimer = window.setTimeout(retryMusicFrame, 8000);
+      };
+
+      const reloadMusicFrame = () => {
+        if (!musicFrame?.dataset.src) return;
+        clearMusicLoadTimer();
+        musicRetries = 0;
+        musicFrame.removeAttribute("src");
+        window.setTimeout(loadMusicFrame, 0);
+      };
+
+      const retryMusicFrame = () => {
+        if (!musicFrame || musicPlayer?.dataset.open !== "true") return;
+        if (musicRetries >= maxMusicRetries) {
+          clearMusicLoadTimer();
+          return;
+        }
+        musicRetries += 1;
+        musicFrame.removeAttribute("src");
+        window.setTimeout(loadMusicFrame, 300 * musicRetries);
+      };
+
+      musicFrame?.addEventListener("load", clearMusicLoadTimer);
+      musicFrame?.addEventListener("error", retryMusicFrame);
+
+      musicToggle?.addEventListener("click", () => {
+        musicPlayer.dataset.open = "true";
+        musicToggle.setAttribute("aria-expanded", "true");
+        musicRetries = 0;
+        loadMusicFrame();
+      });
+
+      musicRefresh?.addEventListener("click", reloadMusicFrame);
+
+      musicClose?.addEventListener("click", () => {
+        musicPlayer.dataset.open = "false";
+        musicToggle?.setAttribute("aria-expanded", "false");
+        clearMusicLoadTimer();
+      });
+    </script>
+  </body>
+</html>

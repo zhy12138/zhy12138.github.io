@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 Not Found | zhy12138" description="页面不存在或尚未发布。">
+  <section class="not-found" aria-labelledby="not-found-title">
+    <div class="not-found-card">
+      <p class="eyebrow">404</p>
+      <h1 id="not-found-title">Not Found</h1>
+      <p class="message">这个页面不存在，可能已经移动或尚未发布。</p>
+      <div class="actions" aria-label="页面操作">
+        <a class="button primary" href="/">返回首页</a>
+        <a class="button" href="/blog/">查看 Blog</a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .not-found {
+      display: grid;
+      min-height: calc(100vh - 220px);
+      place-items: center;
+      padding: 56px 0;
+    }
+
+    .not-found-card {
+      width: min(100%, 680px);
+      padding: clamp(28px, 7vw, 56px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 180, 84, 0.12), transparent 36%),
+        rgba(255, 255, 255, 0.86);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: clamp(3.2rem, 12vw, 6.4rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .message {
+      max-width: 520px;
+      margin: 26px 0 0;
+      color: var(--muted);
+      font-size: 1.12rem;
+      line-height: 1.8;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--text);
+      font-weight: 720;
+      box-shadow: 0 10px 24px rgba(42, 88, 138, 0.08);
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      border-color: rgba(20, 103, 216, 0.35);
+      color: var(--primary-strong);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .button.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: white;
+    }
+
+    @media (max-width: 480px) {
+      .not-found {
+        min-height: auto;
+        padding: 28px 0;
+      }
+
+      .actions {
+        display: grid;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</BaseLayout>
