@@ -105,6 +105,13 @@ const {
         box-shadow: 0 8px 24px rgba(20, 103, 216, 0.12);
       }
 
+      .brand-mark img {
+        display: block;
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+
       .brand-text {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -254,7 +261,9 @@ const {
   <body>
     <header class="site-header site-shell">
       <a class="brand" href="/" aria-label="返回首页">
-        <span class="brand-mark">Z</span>
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/favicon.png" alt="" />
+        </span>
         <span class="brand-text">zhy12138</span>
       </a>
       <nav class="site-nav" aria-label="主导航">
