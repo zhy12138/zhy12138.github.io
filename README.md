@@ -63,7 +63,7 @@
 
 部署由 GitHub Actions 自动完成。仓库已经配置了 `.github/workflows/deploy.yml`，当代码 push 到 `master` 分支时，会自动：
 
-1. 安装依赖：`npm ci`
+1. 安装依赖：`npm install`
 2. 构建站点：`npm run build`
 3. 上传 `dist/`
 4. 发布到 GitHub Pages
