@@ -7,6 +7,27 @@ const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 
+const schools = [
+  {
+    name: '北京大学',
+    years: '2023 - Present',
+    href: 'https://www.pku.edu.cn/',
+    logo: '/school logo/北京大学.png',
+  },
+  {
+    name: '湖南省长沙市第一中学',
+    years: '2020 - 2023',
+    href: 'http://www.hnfms.com.cn/',
+    logo: '/school logo/长沙市第一中学.png',
+  },
+  {
+    name: '长沙市南雅中学',
+    years: '2017 - 2020',
+    href: 'https://nyzx.csedu.gov.cn/',
+    logo: '/school logo/南雅中学.png',
+  },
+];
+
 const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
 ---
 
@@ -65,6 +86,28 @@ const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
         </div>
       )
     }
+  </section>
+
+  <section class="education" aria-labelledby="education-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Education</p>
+        <h2 id="education-title">教育经历</h2>
+      </div>
+    </div>
+    <ol class="school-list">
+      {schools.map((school) => (
+        <li>
+          <a class="school-card" href={school.href} target="_blank" rel="noreferrer">
+            <div class="school-copy">
+              <h3>{school.name}</h3>
+              <p>{school.years}</p>
+            </div>
+            <img src={school.logo} alt="" loading="lazy" aria-hidden="true" />
+          </a>
+        </li>
+      ))}
+    </ol>
   </section>
 
   <style>
@@ -269,6 +312,70 @@ const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
       min-height: 0;
     }
 
+    .education {
+      padding: 54px 0 10px;
+    }
+
+    .school-list {
+      display: grid;
+      gap: 16px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .school-card {
+      position: relative;
+      display: block;
+      min-height: 158px;
+      overflow: hidden;
+      padding: 34px 96px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 12px 30px rgba(42, 88, 138, 0.08);
+    }
+
+    .school-card:hover,
+    .school-card:focus-visible {
+      border-color: rgba(20, 103, 216, 0.35);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .school-card img {
+      position: absolute;
+      top: 50%;
+      right: clamp(56px, 8vw, 112px);
+      width: min(46vw, 340px);
+      height: min(46vw, 340px);
+      opacity: 0.28;
+      object-fit: contain;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .school-copy {
+      position: relative;
+      z-index: 1;
+      max-width: min(58%, 520px);
+      margin-left: clamp(0px, 4vw, 56px);
+    }
+
+    .school-copy h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(1.22rem, 2.3vw, 1.58rem);
+      line-height: 1.25;
+    }
+
+    .school-copy p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+
     @media (max-width: 820px) {
       .hero {
         grid-template-columns: 1fr;
@@ -296,6 +403,21 @@ const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
       .post-preview-list {
         grid-template-columns: 1fr;
       }
+
+      .education {
+        padding-top: 42px;
+      }
+
+      .school-card {
+        min-height: 124px;
+        padding: 24px;
+      }
+
+      .school-card img {
+        right: -42px;
+        width: 210px;
+        height: 210px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -320,6 +442,23 @@ const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
       .section-head {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .school-card {
+        min-height: 118px;
+        padding: 22px;
+      }
+
+      .school-card img {
+        right: -54px;
+        width: 180px;
+        height: 180px;
+        opacity: 0.24;
+      }
+
+      .school-copy {
+        max-width: 76%;
+        margin-left: 0;
       }
     }
   </style>
