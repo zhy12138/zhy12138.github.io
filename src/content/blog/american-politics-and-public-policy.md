@@ -39,7 +39,7 @@ tags: []
   - **警察**：暴力震慑与秩序维护。
   - **预算 / 税收体系**：财政能力与政策执行能力。
 
-![林肯纪念堂前的国民警卫队](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E7%BE%8E%E6%94%BF%E5%85%AC/Screenshot_1.png)
+![林肯纪念堂前的国民警卫队](/blog/american-politics-and-public-policy/screenshot-01.png)
 
 这张图在原笔记中用于说明“Freedom is not Free”：民主象征背后仍依赖强制力量维持秩序。
 
@@ -93,7 +93,7 @@ tags: []
 - 快乐教育、社区崩溃、产业转移等问题撕裂社会，特朗普是政治极化的表现之一。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>1. 在原笔记的分析框架中，美国公共政策和社会治理最核心的两个工具是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">1.</span><strong>在原笔记的分析框架中，美国公共政策和社会治理最核心的两个工具是什么？</strong></p>
   <label><input type="radio" name="aq1" value="A" /> A. 政党宣传与媒体监督</label>
   <label><input type="radio" name="aq1" value="B" /> B. 警察与预算 / 税收体系</label>
   <label><input type="radio" name="aq1" value="C" /> C. 宪法解释与外交同盟</label>
@@ -119,7 +119,7 @@ tags: []
 
 美国警察体系具有明显的分层结构。
 
-![美国倒金字塔状警察体系分类](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E7%BE%8E%E6%94%BF%E5%85%AC/Screenshot_2.png)
+![美国倒金字塔状警察体系分类](/blog/american-politics-and-public-policy/screenshot-02.png)
 
 ### 发展历史与联邦警察
 
@@ -189,7 +189,7 @@ tags: []
 结论：联邦税制的本质是联邦机构和权力扩大。联邦吸纳社会财富，再通过拨款返还给州；同时通过所得税和 IRS-CI 直接管辖个人财物行为。
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>2. 联邦所得税从临时税种转向稳定治理工具后，最重要的政治效果是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">2.</span><strong>联邦所得税从临时税种转向稳定治理工具后，最重要的政治效果是什么？</strong></p>
   <label><input type="radio" name="aq2" value="A" /> A. 州政府完全失去征税权</label>
   <label><input type="radio" name="aq2" value="B" /> B. 地方政府不再依赖财产税</label>
   <label><input type="radio" name="aq2" value="C" /> C. 联邦政府可以直接控制个人收入和财产行为</label>
@@ -311,7 +311,7 @@ FDA 药品审批流程：
 - Medicaid 成本控制与低价阿片类止痛药倾向，被原笔记视为芬太尼泛滥的制度诱因之一。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>3. 美国医疗账单“黑盒”的关键特征是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">3.</span><strong>美国医疗账单“黑盒”的关键特征是什么？</strong></p>
   <label><input type="radio" name="aq3" value="A" /> A. 治疗后由代码、保险核算和个人补差共同决定最终费用</label>
   <label><input type="radio" name="aq3" value="B" /> B. 所有医院都采用单一支付制度，费用就诊前固定</label>
   <label><input type="radio" name="aq3" value="C" /> C. 医生无需保险公司即可直接免除患者费用</label>
@@ -431,7 +431,7 @@ FDA 药品审批流程：
 - 排污权交易体现市场化减排；巴黎协定、清洁电力计划和退出协定体现党派钟摆。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>4. 土地管理中“警察权力”和“征用权力”的主要区别是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">4.</span><strong>土地管理中“警察权力”和“征用权力”的主要区别是什么？</strong></p>
   <label><input type="radio" name="aq4" value="A" /> A. 警察权力只能由联邦使用，征用权力只能由地方使用</label>
   <label><input type="radio" name="aq4" value="B" /> B. 警察权力必须补偿，征用权力无需补偿</label>
   <label><input type="radio" name="aq4" value="C" /> C. 二者都只能用于军事基地建设</label>
@@ -505,7 +505,7 @@ FDA 药品审批流程：
 - 原笔记强调：允许持枪是警察合法开枪的前提，移民国家需要构建警察强制力维持基本秩序。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>5. 美国“大监禁”形成的制度因素不包括哪一项？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">5.</span><strong>美国“大监禁”形成的制度因素不包括哪一项？</strong></p>
   <label><input type="radio" name="aq5" value="A" /> A. 联邦政府全面取消州和地方警察预算</label>
   <label><input type="radio" name="aq5" value="B" /> B. 联邦资金资助州和地方扩张警察与监狱</label>
   <label><input type="radio" name="aq5" value="C" /> C. 三振出局法延长累犯刑期</label>
@@ -573,7 +573,7 @@ FDA 药品审批流程：
 - 底层按需分配。
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>6. “福利悬崖效应”最准确的含义是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">6.</span><strong>“福利悬崖效应”最准确的含义是什么？</strong></p>
   <label><input type="radio" name="aq6" value="A" /> A. 福利越多，政府税收自动越高</label>
   <label><input type="radio" name="aq6" value="B" /> B. 高收入者因累进税自动变成低收入者</label>
   <label><input type="radio" name="aq6" value="C" /> C. 低收入家庭收入略超资格线后福利被撤销，净可支配收入反而骤降</label>

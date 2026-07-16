@@ -60,7 +60,7 @@ tags: []
   $$
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>1. 关于主定理第三种情况，哪一项是需要同时满足的附加条件？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">1.</span><strong>关于主定理第三种情况，哪一项是需要同时满足的附加条件？</strong></p>
 
   <label><input type="radio" name="q1" value="A" /> A. $f(n)=\Theta(n^{\log_b a})$</label>
   <label><input type="radio" name="q1" value="B" /> B. $a=1,b=2$</label>
@@ -103,7 +103,7 @@ tags: []
 - 卷积 / 单位根插值：利用 $A(x)=A_{even}(x^2)+xA_{odd}(x^2)$ 分治，复杂度 $O(n\log n)$。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>2. 确定性选择算法中，哪种分组方式可得到线性复杂度？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">2.</span><strong>确定性选择算法中，哪种分组方式可得到线性复杂度？</strong></p>
 
   <label><input type="radio" name="q2" value="A" /> A. 每 3 个一组，递推为 $T(n/3)+T(2n/3)+O(n)$</label>
   <label><input type="radio" name="q2" value="B" /> B. 每 5 个一组，递推为 $T(n/5)+T(7n/10)+O(n)$</label>
@@ -145,7 +145,7 @@ tags: []
 - 树宽为 $k$ 时，可用树形 DP，复杂度 $O(k2^kN)$。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>3. Hirschberg 算法相对普通编辑距离 DP 的主要空间优势是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">3.</span><strong>Hirschberg 算法相对普通编辑距离 DP 的主要空间优势是什么？</strong></p>
 
   <label><input type="radio" name="q3" value="A" /> A. 时间降到 $O(n+m)$</label>
   <label><input type="radio" name="q3" value="B" /> B. 不再需要递归</label>
@@ -187,7 +187,7 @@ tags: []
 - 任务调度问题可规约为拟阵最优子集：最大化早任务惩罚之和等价于最小化迟任务惩罚。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>4. 活动选择问题的贪心策略是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">4.</span><strong>活动选择问题的贪心策略是什么？</strong></p>
 
   <label><input type="radio" name="q4" value="A" /> A. 按结束时间 $r_i$ 从小到大排序，能选则选</label>
   <label><input type="radio" name="q4" value="B" /> B. 按开始时间 $l_i$ 从小到大排序，能选则选</label>
@@ -237,7 +237,7 @@ tags: []
 - MTF 链表访问：每次访问后移到表头，势能分析说明不超过任意其他策略效率的 4 倍。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>5. 势能法中，平摊代价的表达式是哪一个？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">5.</span><strong>势能法中，平摊代价的表达式是哪一个？</strong></p>
 
   <label><input type="radio" name="q5" value="A" /> A. $\hat c_i=c_i-\Phi(D_i)-\Phi(D_{i-1})$</label>
   <label><input type="radio" name="q5" value="B" /> B. $\hat c_i=c_i+\Phi(D_i)-\Phi(D_{i-1})$</label>
@@ -286,7 +286,7 @@ tags: []
   $$
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>6. 标准形线性规划的要求不包括哪一项？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">6.</span><strong>标准形线性规划的要求不包括哪一项？</strong></p>
 
   <label><input type="radio" name="q6" value="A" /> A. 最小化 $c^Tx$</label>
   <label><input type="radio" name="q6" value="B" /> B. 等式约束 $Ax=b$ 且 $b\geq0$</label>
@@ -337,7 +337,7 @@ tags: []
 - 整数流定理：容量等为整数时，网络流线性规划存在整数最优解；更一般地，TU Matrix 的线性规划存在整数最优解。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>7. 关于最大流最小割，哪一项是正确结论？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">7.</span><strong>关于最大流最小割，哪一项是正确结论？</strong></p>
 
   <label><input type="radio" name="q7" value="A" /> A. 若 $v(f)=c(A,\overline A)$，则 $f$ 为最大流且该割为最小割</label>
   <label><input type="radio" name="q7" value="B" /> B. 任意可行流都等于任意割容量</label>
@@ -369,7 +369,7 @@ tags: []
 - 规约：若 $Q$ 已知下界且 $Q\leq_l P$，则 $P$ 至少和 $Q$ 一样难；最近点对、MST 可由元素唯一性规约得到 $\Omega(n\log n)$。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>8. 基于比较的排序问题，最坏复杂度下界来自哪一项？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">8.</span><strong>基于比较的排序问题，最坏复杂度下界来自哪一项？</strong></p>
 
   <label><input type="radio" name="q8" value="A" /> A. 输入规模为 $n$</label>
   <label><input type="radio" name="q8" value="B" /> B. 每个元素最多比较一次</label>
@@ -401,7 +401,7 @@ tags: []
   - 子集和 $\leq_p$ 双机调度；双机调度可看作装箱子问题。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>9. 一个问题是 NPC 需要满足什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">9.</span><strong>一个问题是 NPC 需要满足什么？</strong></p>
 
   <label><input type="radio" name="q9" value="A" /> A. 只要它属于 P</label>
   <label><input type="radio" name="q9" value="B" /> B. 它是 NP-hard 且属于 NP</label>
@@ -442,7 +442,7 @@ tags: []
 - 原始-对偶模式：若满足松弛互补条件的 $\alpha,\beta$ 版本，目标函数差距不超过 $\alpha\beta$。
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>10. 多机调度 G-MPS 的近似保证是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">10.</span><strong>多机调度 G-MPS 的近似保证是什么？</strong></p>
 
   <label><input type="radio" name="q10" value="A" /> A. $G-MPS(I)\leq OPT(I)$</label>
   <label><input type="radio" name="q10" value="B" /> B. $G-MPS(I)\leq \frac32OPT(I)$ 对所有 $m$ 成立</label>
@@ -483,7 +483,7 @@ tags: []
 - APSP：通过图平方、矩阵乘法和证据查找，可达 $O(MM(n)\log^2 n)$。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>11. 矩阵乘法检验算法属于哪类随机算法？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">11.</span><strong>矩阵乘法检验算法属于哪类随机算法？</strong></p>
 
   <label><input type="radio" name="q11" value="A" /> A. co-RP</label>
   <label><input type="radio" name="q11" value="B" /> B. 拉斯维加斯算法</label>
@@ -527,7 +527,7 @@ tags: []
 - 树上推广：所有有效服务以相同速度向请求点移动，势函数思路为 $\Phi=k|M_{min}|+\sum_{i<j}d(s_i,s_j)$。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>12. 页调度问题中，LRU 的竞争比为多少？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">12.</span><strong>页调度问题中，LRU 的竞争比为多少？</strong></p>
 
   <label><input type="radio" name="q12" value="A" /> A. 1</label>
   <label><input type="radio" name="q12" value="B" /> B. 2</label>

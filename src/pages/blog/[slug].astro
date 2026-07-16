@@ -133,7 +133,8 @@ const toc = headings.map((heading) => {
       if (!('renderMathInElement' in window)) return;
       const renderMath = window.renderMathInElement as typeof import('katex/contrib/auto-render');
 
-      document.querySelectorAll<HTMLElement>('.quiz-explanation').forEach((element) => {
+      document.querySelectorAll<HTMLElement>('.quiz-question').forEach((element) => {
+        if (element.dataset.mathRendered === 'true') return;
         renderMath(element, {
           delimiters: [
             { left: '$$', right: '$$', display: true },
@@ -143,6 +144,7 @@ const toc = headings.map((heading) => {
           ],
           throwOnError: false,
         });
+        element.dataset.mathRendered = 'true';
       });
     }
 
@@ -158,6 +160,146 @@ const toc = headings.map((heading) => {
       });
       const actions = question.querySelector<HTMLElement>('.quiz-actions');
       if (actions) actions.hidden = true;
+    }
+
+    function getCodeLanguage(code: HTMLElement, pre: HTMLPreElement) {
+      const languageClass = Array.from(code.classList).find((className) =>
+        className.startsWith('language-')
+      );
+      return languageClass?.replace('language-', '') || pre.dataset.language || 'code';
+    }
+
+    function appendHighlightedPseudoLine(lineElement: HTMLElement, text: string) {
+      const keywordPattern =
+        /\b(acquire|advance|begin|break|commit|continue|disable_interrupt|elif|else|enable_interrupt|for|if|loop|pop|put|release|replace|return|rollback|stop|unlock|wait|while)\b/gi;
+      let cursor = 0;
+
+      text.replace(keywordPattern, (match, _keyword, offset: number) => {
+        if (offset > cursor) {
+          lineElement.append(document.createTextNode(text.slice(cursor, offset)));
+        }
+
+        const keyword = document.createElement('span');
+        keyword.className = 'code-token-keyword';
+        keyword.textContent = match;
+        lineElement.append(keyword);
+        cursor = offset + match.length;
+        return match;
+      });
+
+      if (cursor < text.length) {
+        lineElement.append(document.createTextNode(text.slice(cursor)));
+      }
+    }
+
+    function wrapCodeLineContent(line: HTMLElement) {
+      if (line.querySelector(':scope > .code-line-content')) return;
+
+      const content = document.createElement('span');
+      content.className = 'code-line-content';
+
+      while (line.firstChild) {
+        content.append(line.firstChild);
+      }
+
+      if (!content.textContent) {
+        content.textContent = ' ';
+      }
+
+      line.append(content);
+    }
+
+    async function copyCode(button: HTMLButtonElement, text: string) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.inset = '0 auto auto -9999px';
+        document.body.append(textarea);
+        textarea.select();
+        const legacyDocument = document as Document & {
+          execCommand(commandId: 'copy'): boolean;
+        };
+        legacyDocument.execCommand('copy');
+        textarea.remove();
+      }
+
+      button.textContent = '已复制';
+      window.setTimeout(() => {
+        button.textContent = '复制';
+      }, 1400);
+    }
+
+    function enhanceCodeBlocks() {
+      document.querySelectorAll<HTMLElement>('.content pre > code').forEach((code) => {
+        const pre = code.parentElement;
+        if (!(pre instanceof HTMLPreElement)) return;
+        if (pre.closest('.code-frame')) return;
+        if (code.classList.contains('language-html')) return;
+
+        const rawCode = code.textContent ?? '';
+        const language = getCodeLanguage(code, pre);
+        const isPseudo = language === 'pseudocode' || language === 'pseudo';
+        const frame = document.createElement('div');
+        const toolbar = document.createElement('div');
+        const label = document.createElement('span');
+        const copyButton = document.createElement('button');
+
+        frame.className = `code-frame language-${language}`;
+        toolbar.className = 'code-toolbar';
+        label.className = 'code-language';
+        label.textContent = language === 'pseudocode' || language === 'pseudo' ? 'PSEUDO' : language.toUpperCase();
+        copyButton.className = 'code-copy';
+        copyButton.type = 'button';
+        copyButton.textContent = '复制';
+        copyButton.addEventListener('click', () => copyCode(copyButton, rawCode));
+
+        toolbar.append(label, copyButton);
+        pre.before(frame);
+        frame.append(toolbar, pre);
+
+        if (isPseudo) {
+          code.replaceChildren();
+          rawCode.replace(/\n$/, '').split('\n').forEach((lineText) => {
+            const line = document.createElement('span');
+            const content = document.createElement('span');
+            line.className = 'code-line';
+            content.className = 'code-line-content';
+            appendHighlightedPseudoLine(content, lineText || ' ');
+            line.append(content);
+            code.append(line);
+          });
+          return;
+        }
+
+        const renderedLines = Array.from(code.children).filter(
+          (child): child is HTMLElement =>
+            child instanceof HTMLElement && child.classList.contains('line')
+        );
+
+        if (renderedLines.length > 0) {
+          renderedLines.forEach((line) => {
+            line.classList.add('code-line');
+            wrapCodeLineContent(line);
+          });
+          code.replaceChildren(...renderedLines);
+          return;
+        }
+
+        code.replaceChildren();
+        rawCode.replace(/\n$/, '').split('\n').forEach((lineText) => {
+          const line = document.createElement('span');
+          const content = document.createElement('span');
+          line.className = 'code-line';
+          content.className = 'code-line-content';
+          content.textContent = lineText || ' ';
+          line.append(content);
+          code.append(line);
+        });
+      });
     }
 
     document.querySelectorAll('.quiz-question').forEach((question) => {
@@ -203,6 +345,7 @@ const toc = headings.map((heading) => {
       });
     });
 
+    enhanceCodeBlocks();
     scheduleArticleStateUpdate();
     if (document.readyState === 'complete') {
       renderQuizMath();
@@ -255,11 +398,45 @@ const toc = headings.map((heading) => {
     }
 
     .content {
+      --note-strong-bg: #fff2cf;
+      --note-strong-text: #6f4300;
+      --note-inline-code-bg: #eef7f4;
+      --note-inline-code-border: #b9ddd2;
+      --note-inline-code-text: #0b6258;
+      --note-code-bg: #172033;
+      --note-code-line: rgba(184, 208, 240, 0.18);
+      --note-code-text: #e7eefb;
+      --note-code-muted: #8496b4;
+      --note-code-toolbar: #111827;
+      --note-code-accent: #ffd166;
+      --note-code-keyword: #ffb86b;
+      --note-table-head: #075e64;
+      --note-table-head-line: #0f7a80;
+      --note-table-row: rgba(250, 254, 253, 0.88);
+      --note-table-row-alt: rgba(232, 247, 245, 0.82);
+      --note-table-border: rgba(7, 94, 100, 0.24);
+      --note-image-bg: #fbfdff;
+      --note-image-border: #d7e5f2;
+      --note-link-bg: rgba(20, 103, 216, 0.1);
+      --note-link-hover-bg: rgba(20, 103, 216, 0.16);
+      --note-heading-text: #321d1a;
+      --note-heading-bg: #ffc8c0;
+      --note-heading-border: rgba(194, 53, 58, 0.32);
+      --note-heading-strong: #c2353a;
+      --note-heading-mid-bg: #ffe2c2;
+      --note-heading-sub-bg: #ffe8db;
+      --note-heading-mid: #bf5b25;
+      --note-heading-sub: #ad4638;
+      --note-quiz: #4338ca;
+      --note-quiz-strong: #312e81;
+      --note-quiz-soft: rgba(67, 56, 202, 0.1);
+      --note-quiz-line: rgba(67, 56, 202, 0.24);
       margin-top: 36px;
       padding-top: 26px;
       border-top: 1px solid var(--line);
       counter-reset: article-h1;
       line-height: 1.86;
+      overflow-wrap: break-word;
     }
 
     .content :global(h1) {
@@ -297,10 +474,13 @@ const toc = headings.map((heading) => {
     .content :global(h4)::before,
     .content :global(h5)::before,
     .content :global(h6)::before {
-      display: inline-block;
-      margin-right: 0.5em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
       color: var(--accent);
       font-variant-numeric: tabular-nums;
+      font-weight: 820;
     }
 
     .content :global(h1)::before {
@@ -331,35 +511,374 @@ const toc = headings.map((heading) => {
     }
 
     .content :global(h2) {
-      margin-top: 1.7em;
-      font-size: 1.22rem;
-      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 2em 0 0.9em;
+      padding: 16px 18px;
+      border: 1px solid rgba(191, 91, 37, 0.32);
+      border-left: 7px solid var(--note-heading-mid);
+      border-radius: 8px;
+      background: var(--note-heading-mid-bg);
+      box-shadow: 0 12px 28px rgba(174, 72, 47, 0.13);
+      color: var(--note-heading-text);
+      font-size: 1.5rem;
+      font-weight: 820;
+      line-height: 1.3;
       letter-spacing: 0;
     }
 
     .content :global(h1) {
-      margin-top: 2em;
-      font-size: 1.55rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 2.2em 0 0.95em;
+      padding: 18px 20px;
+      border: 1px solid var(--note-heading-border);
+      border-left: 6px solid var(--note-heading-strong);
+      border-radius: 8px;
+      background: var(--note-heading-bg);
+      box-shadow: 0 16px 34px rgba(194, 53, 58, 0.15);
+      color: var(--note-heading-text);
+      font-size: 1.78rem;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+
+    .content :global(h1)::before {
+      min-width: 2.1em;
+      margin-top: 0.02em;
+      padding: 0.1em 0.38em;
+      border-radius: 7px;
+      background: var(--note-heading-strong);
+      color: white;
+      font-size: 0.74em;
+      line-height: 1.45;
+    }
+
+    .content :global(h2)::before {
+      min-width: 2.5em;
+      margin-top: 0.08em;
+      padding: 0.08em 0.48em;
+      border: 0;
+      border-radius: 7px;
+      background: var(--note-heading-mid);
+      color: white;
+      font-size: 0.7em;
+      line-height: 1.55;
+    }
+
+    .content :global(h3) {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      margin: 1.75em 0 0.8em;
+      padding: 10px 13px;
+      border: 1px solid rgba(173, 70, 56, 0.3);
+      border-left: 5px solid var(--note-heading-sub);
+      border-radius: 8px;
+      background: var(--note-heading-sub-bg);
+      box-shadow: 0 8px 22px rgba(173, 70, 56, 0.12);
+      color: var(--note-heading-sub);
+      font-size: 1.26rem;
+      font-weight: 800;
       line-height: 1.4;
       letter-spacing: 0;
+    }
+
+    .content :global(h3)::before {
+      margin-top: 0.05em;
+      padding: 0.02em 0.44em;
+      border-radius: 6px;
+      background: var(--note-heading-sub);
+      color: white;
+      font-size: 0.72em;
+      line-height: 1.6;
+    }
+
+    .content :global(h4),
+    .content :global(h5),
+    .content :global(h6) {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin: 1.45em 0 0.62em;
+      color: #26394f;
+      font-size: 1rem;
+      line-height: 1.45;
+      letter-spacing: 0;
+    }
+
+    .content :global(h4)::before,
+    .content :global(h5)::before,
+    .content :global(h6)::before {
+      color: var(--muted);
+      font-size: 0.82em;
     }
 
     .content :global(p) {
       margin: 1.1em 0;
     }
 
+    .content :global(ul),
+    .content :global(ol) {
+      margin: 1em 0;
+      padding-left: 1.45em;
+    }
+
+    .content :global(li) {
+      margin: 0.34em 0;
+      padding-left: 0.1em;
+    }
+
+    .content :global(li > ul),
+    .content :global(li > ol) {
+      margin: 0.36em 0 0.5em;
+    }
+
     .content :global(a) {
+      border-radius: 4px;
+      background:
+        linear-gradient(var(--note-link-bg), var(--note-link-bg)) 0 88% / 100% 0.42em
+          no-repeat;
       color: var(--primary-strong);
-      text-decoration: underline;
-      text-underline-offset: 4px;
+      font-weight: 660;
+      text-decoration: none;
+      transition:
+        background-size 140ms ease,
+        background-color 140ms ease,
+        color 140ms ease;
+    }
+
+    .content :global(a:hover),
+    .content :global(a:focus-visible) {
+      background:
+        linear-gradient(var(--note-link-hover-bg), var(--note-link-hover-bg)) 0 88% / 100%
+          0.86em no-repeat;
+      color: #083d83;
+      outline: none;
+    }
+
+    .content :global(strong) {
+      padding: 0.08em 0.26em;
+      border-radius: 5px;
+      background: linear-gradient(180deg, transparent 18%, var(--note-strong-bg) 18%);
+      color: var(--note-strong-text);
+      font-weight: 760;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
     }
 
     .content :global(code) {
-      padding: 2px 6px;
+      padding: 0.12em 0.42em;
+      border: 1px solid var(--note-inline-code-border);
       border-radius: 6px;
-      background: rgba(20, 103, 216, 0.08);
-      color: var(--primary-strong);
-      font-size: 0.92em;
+      background: var(--note-inline-code-bg);
+      color: var(--note-inline-code-text);
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, ui-monospace, monospace;
+      font-size: 0.9em;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .content :global(.code-frame) {
+      margin: 1.25em 0;
+      border: 1px solid var(--note-code-line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 56px),
+        var(--note-code-bg);
+      box-shadow: 0 16px 34px rgba(16, 24, 39, 0.16);
+      overflow: hidden;
+    }
+
+    .content :global(.code-toolbar) {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      padding: 8px 10px 8px 14px;
+      border-bottom: 1px solid var(--note-code-line);
+      background: rgba(17, 24, 39, 0.78);
+    }
+
+    .content :global(.code-language) {
+      color: var(--note-code-accent);
+      font-size: 0.76rem;
+      font-weight: 820;
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+
+    .content :global(.code-copy) {
+      min-height: 30px;
+      padding: 0 11px;
+      border: 1px solid rgba(255, 209, 102, 0.34);
+      border-radius: 7px;
+      background: rgba(255, 209, 102, 0.1);
+      color: #ffe6a3;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 760;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .content :global(.code-copy:hover),
+    .content :global(.code-copy:focus-visible) {
+      border-color: rgba(255, 209, 102, 0.68);
+      background: rgba(255, 209, 102, 0.18);
+      color: white;
+      outline: none;
+    }
+
+    .content :global(pre) {
+      margin: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .content :global(pre code) {
+      display: block;
+      min-width: max-content;
+      padding: 14px 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--note-code-text);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      overflow-wrap: normal;
+      tab-size: 2;
+      white-space: pre;
+      word-break: normal;
+    }
+
+    .content :global(.code-line) {
+      display: grid;
+      grid-template-columns: 42px max-content;
+      align-items: start;
+      padding: 0 20px 0 0;
+      counter-increment: code-line;
+      line-height: inherit;
+    }
+
+    .content :global(.code-line)::before {
+      content: counter(code-line);
+      grid-column: 1;
+      padding-right: 12px;
+      color: var(--note-code-muted);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      user-select: none;
+    }
+
+    .content :global(.code-line-content) {
+      grid-column: 2;
+      min-width: 0;
+      line-height: inherit;
+    }
+
+    .content :global(.code-line-content span) {
+      line-height: inherit;
+    }
+
+    .content :global(pre code) {
+      counter-reset: code-line;
+    }
+
+    .content :global(.code-token-keyword) {
+      color: var(--note-code-keyword);
+      font-weight: 760;
+    }
+
+    .content :global(table) {
+      display: block;
+      width: max-content;
+      max-width: 100%;
+      margin: 1.45em auto;
+      border: 1px solid rgba(7, 94, 100, 0.34);
+      border-radius: 8px;
+      border-spacing: 0;
+      border-collapse: separate;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 16px 34px rgba(7, 94, 100, 0.14);
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .content :global(thead) {
+      background: var(--note-table-head);
+    }
+
+    .content :global(th),
+    .content :global(td) {
+      min-width: 9rem;
+      padding: 10px 12px;
+      border-right: 1px solid var(--note-table-border);
+      border-bottom: 1px solid var(--note-table-border);
+      line-height: 1.62;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .content :global(th) {
+      border-right-color: var(--note-table-head-line);
+      border-bottom-color: var(--note-table-head-line);
+      background: var(--note-table-head);
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 780;
+    }
+
+    .content :global(td) {
+      background: var(--note-table-row);
+      color: var(--text);
+    }
+
+    .content :global(tbody tr:nth-child(even) td) {
+      background: var(--note-table-row-alt);
+    }
+
+    .content :global(tr > :last-child) {
+      border-right: 0;
+    }
+
+    .content :global(tbody tr:last-child td) {
+      border-bottom: 0;
+    }
+
+    .content :global(img) {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 1.35em auto;
+      padding: 10px;
+      border: 1px solid var(--note-image-border);
+      border-radius: 8px;
+      background: var(--note-image-bg);
+      box-shadow: 0 14px 32px rgba(42, 88, 138, 0.12);
+    }
+
+    .content :global(blockquote) {
+      margin: 1.2em 0;
+      padding: 2px 0 2px 16px;
+      border-left: 4px solid var(--accent);
+      color: var(--muted);
+      background: linear-gradient(90deg, rgba(0, 167, 181, 0.08), transparent 72%);
+    }
+
+    .content :global(hr) {
+      margin: 2em 0;
+      border: 0;
+      border-top: 1px solid var(--line);
     }
 
     .content :global(.katex-display) {
@@ -508,12 +1027,12 @@ const toc = headings.map((heading) => {
       overflow: hidden;
       margin: 22px 0;
       padding: 22px 20px 20px;
-      border: 1px solid rgba(20, 103, 216, 0.24);
+      border: 1px solid var(--note-quiz-line);
       border-radius: 8px;
       background:
-        linear-gradient(180deg, rgba(235, 247, 255, 0.78), rgba(255, 255, 255, 0.94) 46%),
+        linear-gradient(180deg, var(--note-quiz-soft), rgba(255, 255, 255, 0.94) 48%),
         rgba(255, 255, 255, 0.92);
-      box-shadow: 0 16px 36px rgba(42, 88, 138, 0.12);
+      box-shadow: 0 16px 36px rgba(49, 46, 129, 0.13);
     }
 
     .content :global(.quiz-question::before) {
@@ -521,15 +1040,57 @@ const toc = headings.map((heading) => {
       position: absolute;
       inset: 0 0 auto;
       height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
+      background: linear-gradient(90deg, var(--note-quiz-strong), var(--note-quiz));
     }
 
-    .content :global(.quiz-question > p:first-child) {
+    .content :global(.quiz-prompt) {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
       margin: 0 0 16px;
       color: var(--text);
       font-size: 1.02rem;
       font-weight: 720;
       line-height: 1.65;
+    }
+
+    .content :global(.quiz-number) {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25em;
+      padding: 0.08em 0.42em;
+      border-radius: 6px;
+      background: var(--note-quiz);
+      color: white;
+      font-size: 0.92em;
+      font-weight: 820;
+      line-height: 1.45;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .content :global(.quiz-prompt strong) {
+      display: block;
+      min-width: 0;
+      padding: 0;
+      border-left: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--note-quiz-strong);
+      font-weight: 760;
+      box-decoration-break: slice;
+      -webkit-box-decoration-break: slice;
+    }
+
+    .content :global(.quiz-question code) {
+      padding: 0.12em 0.42em;
+      border: 1px solid var(--note-inline-code-border);
+      border-radius: 6px;
+      background: var(--note-inline-code-bg);
+      color: var(--note-inline-code-text);
+      font-size: 0.9em;
+      line-height: 1.5;
     }
 
     .content :global(.quiz-question > p:has(label)) {
@@ -543,7 +1104,7 @@ const toc = headings.map((heading) => {
       position: relative;
       min-width: 0;
       padding: 12px 14px 12px 40px;
-      border: 1px solid rgba(20, 103, 216, 0.14);
+      border: 1px solid rgba(67, 56, 202, 0.14);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.86);
       color: var(--text);
@@ -554,8 +1115,8 @@ const toc = headings.map((heading) => {
     }
 
     .content :global(.quiz-question label:hover) {
-      border-color: rgba(20, 103, 216, 0.4);
-      background: rgba(235, 247, 255, 0.92);
+      border-color: rgba(67, 56, 202, 0.4);
+      background: rgba(67, 56, 202, 0.07);
     }
 
     .content :global(.quiz-question label:has(input:disabled)) {
@@ -581,7 +1142,7 @@ const toc = headings.map((heading) => {
       width: 16px;
       height: 16px;
       margin: 0;
-      accent-color: var(--primary);
+      accent-color: var(--note-quiz);
     }
 
     .content :global(.quiz-actions) {
@@ -610,13 +1171,13 @@ const toc = headings.map((heading) => {
 
     .content :global(.quiz-actions .submit-answer) {
       border-color: transparent;
-      background: var(--primary);
+      background: var(--note-quiz);
       color: white;
     }
 
     .content :global(.quiz-actions button:hover),
     .content :global(.quiz-actions button:focus-visible) {
-      border-color: rgba(20, 103, 216, 0.35);
+      border-color: rgba(67, 56, 202, 0.35);
       outline: none;
       transform: translateY(-1px);
     }
@@ -676,6 +1237,31 @@ const toc = headings.map((heading) => {
         padding-top: 24px;
       }
 
+      .content :global(h1) {
+        gap: 9px;
+        padding: 14px 12px;
+        font-size: 1.46rem;
+      }
+
+      .content :global(h2) {
+        gap: 8px;
+        padding: 13px 12px;
+        font-size: 1.3rem;
+      }
+
+      .content :global(h3) {
+        width: auto;
+        padding: 8px 10px;
+        font-size: 1.14rem;
+      }
+
+      .content :global(h1)::before,
+      .content :global(h2)::before,
+      .content :global(h3)::before {
+        min-width: auto;
+        white-space: nowrap;
+      }
+
       .toc ol {
         grid-template-columns: 1fr;
       }
@@ -689,6 +1275,14 @@ const toc = headings.map((heading) => {
         padding: 20px 16px 18px;
       }
 
+      .content :global(.quiz-prompt) {
+        gap: 8px;
+      }
+
+      .content :global(.quiz-number) {
+        min-width: 2.1em;
+      }
+
       .content :global(.quiz-question label) {
         padding: 11px 12px 11px 36px;
         font-size: 0.96rem;
@@ -697,6 +1291,41 @@ const toc = headings.map((heading) => {
       .content :global(.quiz-question input[type='radio']) {
         top: 17px;
         left: 12px;
+      }
+
+      .content :global(.code-toolbar) {
+        min-height: 38px;
+        padding: 7px 8px 7px 11px;
+      }
+
+      .content :global(.code-language) {
+        font-size: 0.7rem;
+      }
+
+      .content :global(.code-copy) {
+        min-height: 28px;
+        padding: 0 9px;
+        font-size: 0.74rem;
+      }
+
+      .content :global(pre code) {
+        padding: 12px 0;
+        font-size: 0.84rem;
+      }
+
+      .content :global(.code-line) {
+        grid-template-columns: 34px max-content;
+        padding-right: 14px;
+      }
+
+      .content :global(th),
+      .content :global(td) {
+        min-width: 8rem;
+        padding: 9px 10px;
+      }
+
+      .content :global(img) {
+        padding: 7px;
       }
     }
   </style>

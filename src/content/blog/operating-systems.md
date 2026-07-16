@@ -51,7 +51,7 @@ tags: []
 - 共享：地址空间、全局变量、堆、文件描述符、网络连接。
 - 私有：TCB 中的寄存器、PC、执行栈、参数、临时变量、返回地址等。
 
-![进程内共享状态与线程私有状态](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_8.png)
+![进程内共享状态与线程私有状态](/blog/operating-systems/screenshot-08.png)
 
 ### 地址空间、进程与双模式
 
@@ -63,7 +63,7 @@ tags: []
 
 线程是对虚拟 CPU 核心的抽象，是调度的最小单位；进程是对机器的抽象，是资源分配和保护的最小单位。
 
-![单线程进程与多线程进程的地址空间](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_30.png)
+![单线程进程与多线程进程的地址空间](/blog/operating-systems/screenshot-30.png)
 
 双模式用于保护操作系统：
 
@@ -72,7 +72,7 @@ tags: []
 - 系统调用、异常和中断会让控制权进入内核。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>1. 线程和进程的核心区别是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">1.</span><strong>线程和进程的核心区别是什么？</strong></p>
   <label><input type="radio" name="osq1" value="A" /> A. 线程拥有独立地址空间，进程只能共享地址空间</label>
   <label><input type="radio" name="osq1" value="B" /> B. 线程是调度执行单元，进程是资源分配和保护边界</label>
   <label><input type="radio" name="osq1" value="C" /> C. 进程没有文件描述符，线程才有文件描述符</label>
@@ -175,7 +175,7 @@ int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact)
 
 POSIX 将许多对象抽象为 file I/O 接口。
 
-![I/O 抽象层次](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_1.png)
+![I/O 抽象层次](/blog/operating-systems/screenshot-01.png)
 
 High-level I/O 使用 `FILE *` 流：
 
@@ -208,7 +208,7 @@ int pipe(int pipefd[2]);
 
 每个进程维护文件描述符到 OFD 的映射。OFD 包含磁盘位置和当前文件偏移；`fork`、`dup` 和 `dup2` 会导致多个描述符共享同一个 OFD。
 
-![fork 后文件描述符到 OFD 的共享](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_2.png)
+![fork 后文件描述符到 OFD 的共享](/blog/operating-systems/screenshot-02.png)
 
 ### IPC、pipe 与 socket
 
@@ -223,7 +223,7 @@ int pipe(int fd[2]); // fd[0] 读端，fd[1] 写端
 - 所有写描述符关闭后，读返回 `EOF`。
 - 所有读描述符关闭后，写产生 `SIGPIPE`，继续写会得到 `EPIPE`。
 
-![Unix pipe 通信模型](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_3.png)
+![Unix pipe 通信模型](/blog/operating-systems/screenshot-03.png)
 
 socket 用于跨网络 IPC；连接包含两个单向 queue。Server 调用序列：
 
@@ -237,12 +237,12 @@ Client 调用序列：
 1. `socket()` 创建 socket。
 2. `connect()` 连接服务器地址。
 
-![socket 连接结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_5.png)
+![socket 连接结构](/blog/operating-systems/screenshot-05.png)
 
 并发服务器可用 `fork` 或多线程实现。进程隔离好但开销大，线程效率高但共享状态无保护；常见做法是限制进程 / 线程池大小，避免过多并发降低吞吐。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>2. `fork` 后父子进程对同一已打开文件的文件描述符关系是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">2.</span><strong><code>fork</code> 后父子进程对同一已打开文件的文件描述符关系是什么？</strong></p>
   <label><input type="radio" name="osq2" value="A" /> A. 子进程只能获得文件名，不能获得文件描述符</label>
   <label><input type="radio" name="osq2" value="B" /> B. 父子进程必然拥有完全独立的磁盘文件副本</label>
   <label><input type="radio" name="osq2" value="C" /> C. 子进程复制描述符后立即关闭父进程描述符</label>
@@ -301,7 +301,7 @@ void thread1() {
 
 关中断锁伪代码：
 
-```text
+```pseudocode
 acquire:
     disable_interrupt
     if locked:
@@ -384,7 +384,7 @@ Mesa vs Hoare：
 - **Mesa-style**：`signal` 只把等待者放入 ready queue，之后由调度器运行；条件可能已变化，所以必须用 `while` 重新判断。
 - **Hoare-style**：唤醒后立即转交 lock 和 CPU，语义更直接，但上下文切换开销大。
 
-![Mesa monitor 中 signal 后等待者进入 ready queue](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_12.png)
+![Mesa monitor 中 signal 后等待者进入 ready queue](/blog/operating-systems/screenshot-12.png)
 
 ### 读者写者问题
 
@@ -435,11 +435,11 @@ Writer() {
 该实现会让等待写者优先于后来的读者，可能导致读者饥饿。
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>3. Mesa-style monitor 中为什么条件等待通常要写成 `while` 而不是 `if`？</strong></p>
-  <label><input type="radio" name="osq3" value="A" /> A. `while` 可以自动释放所有锁，`if` 不会释放锁</label>
+  <p class="quiz-prompt"><span class="quiz-number">3.</span><strong>Mesa-style monitor 中为什么条件等待通常要写成 <code>while</code> 而不是 <code>if</code>？</strong></p>
+  <label><input type="radio" name="osq3" value="A" /> A. <code>while</code> 可以自动释放所有锁，<code>if</code> 不会释放锁</label>
   <label><input type="radio" name="osq3" value="B" /> B. Mesa-style 不支持条件变量</label>
   <label><input type="radio" name="osq3" value="C" /> C. 被唤醒线程只是进入 ready queue，真正运行时条件可能已不满足</label>
-  <label><input type="radio" name="osq3" value="D" /> D. `while` 可以避免所有类型的死锁</label>
+  <label><input type="radio" name="osq3" value="D" /> D. <code>while</code> 可以避免所有类型的死锁</label>
   <div class="quiz-actions">
     <button type="button" class="submit-answer">提交答案</button>
     <button type="button" class="show-answer">显示答案</button>
@@ -454,7 +454,7 @@ Writer() {
 
 执行模型：程序在 CPU burst 和 I/O burst 间切换。调度决定哪个任务获得下一次 CPU burst。
 
-![CPU burst 与 I/O burst 交替](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_13.png)
+![CPU burst 与 I/O burst 交替](/blog/operating-systems/screenshot-13.png)
 
 目标：
 
@@ -486,7 +486,7 @@ SJF / SRTF：
 - 在最小化平均完成时间目标下，SJF / SRTF 分别是无抢占 / 有抢占最优策略。
 - 缺点是长任务可能饥饿，且未来运行时间难以预测。
 
-![调度策略对 CPU / I/O 利用率的影响](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_32.png)
+![调度策略对 CPU / I/O 利用率的影响](/blog/operating-systems/screenshot-32.png)
 
 ### 经典策略与实时调度
 
@@ -569,7 +569,7 @@ $$
 
 调度评估图提醒：系统利用率接近 100% 时响应时间会非线性暴涨。
 
-![响应时间随利用率上升的非线性变化](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_15.png)
+![响应时间随利用率上升的非线性变化](/blog/operating-systems/screenshot-15.png)
 
 ### 死锁
 
@@ -582,7 +582,7 @@ $$
 
 资源分配图用 $T_i$ 表示线程，$R_j$ 表示资源；请求边为 $T_i\rightarrow R_j$，分配边为 $R_j\rightarrow T_i$。
 
-![资源分配图中的死锁和非死锁环](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_16.png)
+![资源分配图中的死锁和非死锁环](/blog/operating-systems/screenshot-16.png)
 
 死锁检测算法：
 
@@ -625,10 +625,10 @@ Banker's Algorithm 将检测条件替换为：
 - **DRF**：对 Dominant Share 做 max-min fairness，满足份额保证、strategy-proof 和帕累托效率。
 - **FairRide**：分布式缓存公平共享，满足份额保证和 strategy-proof，但不追求完全帕累托最优。
 
-![DRF 中 dominant share 的资源分配例子](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_18.png)
+![DRF 中 dominant share 的资源分配例子](/blog/operating-systems/screenshot-18.png)
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>4. 在已知任务运行时间且允许抢占的假设下，哪种调度策略用于最小化平均完成时间？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">4.</span><strong>在已知任务运行时间且允许抢占的假设下，哪种调度策略用于最小化平均完成时间？</strong></p>
   <label><input type="radio" name="osq4" value="A" /> A. SRTF</label>
   <label><input type="radio" name="osq4" value="B" /> B. FCFS</label>
   <label><input type="radio" name="osq4" value="C" /> C. Strict Priority</label>
@@ -658,7 +658,7 @@ Base and Bound：
 - 优点是简单、高效、保护清晰、上下文切换快。
 - 缺点是外部碎片、稀疏地址空间支持差、共享困难。
 
-![Base and Bound 的硬件运行时翻译](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_23.png)
+![Base and Bound 的硬件运行时翻译](/blog/operating-systems/screenshot-23.png)
 
 ### 分段与分页
 
@@ -669,7 +669,7 @@ Base and Bound：
 - `Base + offset` 得物理地址，`Limit` 做越界检查。
 - 支持稀疏地址空间和权限保护，但仍有可变大小段带来的碎片和移动问题。
 
-![分段地址翻译](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_20.png)
+![分段地址翻译](/blog/operating-systems/screenshot-20.png)
 
 分页：
 
@@ -678,17 +678,17 @@ Base and Bound：
 - 页表将虚拟页号映射到物理页号和权限。
 - 优点是分配简单、共享容易；缺点是稀疏地址空间会浪费页表，页表过大不能全部常驻。
 
-![分页地址翻译](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_21.png)
+![分页地址翻译](/blog/operating-systems/screenshot-21.png)
 
 二级页表和多级页表按需分配低层页表，支持稀疏地址空间。PTE 可用于 Demand Paging、Copy on Write、Zero Fill on Demand。
 
-![二级页表结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_24.png)
+![二级页表结构](/blog/operating-systems/screenshot-24.png)
 
 ### TLB 与缓存协同
 
 MMU 每次取指、load、store 都要翻译虚拟地址。TLB 缓存虚拟页号到物理页号映射。
 
-![MMU、TLB、cache 和物理内存关系](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_27.png)
+![MMU、TLB、cache 和物理内存关系](/blog/operating-systems/screenshot-27.png)
 
 TLB 特点：
 
@@ -704,7 +704,7 @@ TLB 特点：
 
 若虚拟地址 offset 部分覆盖 cache 需要的 index 和 byte，则可以让 TLB 查询与 cache 索引重叠。
 
-![TLB 与 cache overlap](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_35.png)
+![TLB 与 cache overlap](/blog/operating-systems/screenshot-35.png)
 
 ### Demand Paging
 
@@ -718,7 +718,7 @@ Demand paging 流程：
 4. 更新页表，重新调度并重试指令。
 5. 成功翻译后更新 TLB。
 
-![缺页异常和按需调页流程](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_37.png)
+![缺页异常和按需调页流程](/blog/operating-systems/screenshot-37.png)
 
 典型使用：
 
@@ -741,7 +741,7 @@ $$
 
 工作集模型认为进程在一段时间内访问稳定页面集合，内存不足以容纳工作集会发生抖动。
 
-![工作集随时间变化](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_38.png)
+![工作集随时间变化](/blog/operating-systems/screenshot-38.png)
 
 ### 页替换策略
 
@@ -752,11 +752,11 @@ $$
 
 FIFO 不满足堆栈属性，可能出现 Belady anomaly。
 
-![FIFO 页替换异常](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_40.png)
+![FIFO 页替换异常](/blog/operating-systems/screenshot-40.png)
 
 Clock Algorithm：
 
-```text
+```pseudocode
 on page fault:
     loop:
         if current.accessed == 1:
@@ -769,7 +769,7 @@ on page fault:
 
 Nth Chance：
 
-```text
+```pseudocode
 if accessed == 1:
     accessed = 0
     sweep = 0
@@ -797,10 +797,10 @@ elif accessed == 0:
 - **PipeSwitch**：深度学习 GPU 模型切换中，用分层传输和执行重叠实现流水线式上下文切换。
 - **TGS**：容器 GPU 透明共享，通过速率控制、统一内存和驱逐实现性能与故障隔离。
 
-![InfiniSwap 远程内存架构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_41.png)
+![InfiniSwap 远程内存架构](/blog/operating-systems/screenshot-41.png)
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>5. Clock 页替换算法为什么是 LRU 的近似而不是精确 LRU？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">5.</span><strong>Clock 页替换算法为什么是 LRU 的近似而不是精确 LRU？</strong></p>
   <label><input type="radio" name="osq5" value="A" /> A. 它完全随机选择要替换的页</label>
   <label><input type="radio" name="osq5" value="B" /> B. 它只用 accessed 位区分新旧两类页面，不能记录完整最近使用顺序</label>
   <label><input type="radio" name="osq5" value="C" /> C. 它必须知道未来页面访问序列</label>
@@ -876,7 +876,7 @@ $$
 
 在满载前吞吐增长、时延几乎不变；超过满载后吞吐不再增长、时延持续增长。
 
-![确定性排队与利用率](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_45.png)
+![确定性排队与利用率](/blog/operating-systems/screenshot-45.png)
 
 突发建模中，到达间隔常用指数分布：
 
@@ -926,7 +926,7 @@ $$
 - C-SCAN：单方向扫描，更公平。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>6. M/G/1 排队模型中，利用率 $u$ 接近 1 时为什么危险？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">6.</span><strong>M/G/1 排队模型中，利用率 $u$ 接近 1 时为什么危险？</strong></p>
   <label><input type="radio" name="osq6" value="A" /> A. 服务时间会自动变成 0</label>
   <label><input type="radio" name="osq6" value="B" /> B. 队列长度固定为 1，不会变化</label>
   <label><input type="radio" name="osq6" value="C" /> C. 到达率会自动下降为 0</label>
@@ -958,7 +958,7 @@ $$
 2. 文件号和偏移通过 inode 等索引结构定位数据块。
 3. free space map 维护空闲位置。
 
-![文件名、inode 和数据块关系](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_47.png)
+![文件名、inode 和数据块关系](/blog/operating-systems/screenshot-47.png)
 
 打开文件时：
 
@@ -967,7 +967,7 @@ $$
 - 每进程打开文件表保存 offset 等状态。
 - `read/write` 通过文件句柄找到内核 inode，再访问数据块。
 
-![内存中文件系统打开表结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_48.png)
+![内存中文件系统打开表结构](/blog/operating-systems/screenshot-48.png)
 
 ### FAT、UNIX FS、FFS 与 NTFS
 
@@ -978,7 +978,7 @@ FAT：
 - 访问第 $k$ 个块要沿链表走 $k-1$ 步。
 - 简单，适合固件；随机访问和连续大文件性能差。
 
-![FAT 链式块分配](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_49.png)
+![FAT 链式块分配](/blog/operating-systems/screenshot-49.png)
 
 UNIX FS：
 
@@ -988,7 +988,7 @@ UNIX FS：
 - 一级间接指针增加约 4MB，二级约 4GB，三级约 4TB。
 - inode 让一个文件可有多个目录名，即硬链接。
 
-![UNIX inode 指针结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_51.png)
+![UNIX inode 指针结构](/blog/operating-systems/screenshot-51.png)
 
 FFS：
 
@@ -998,7 +998,7 @@ FFS：
 - 使用 bitmap 而不是链表维护空闲块。
 - 尝试连续分配，预留 $10\%\sim20\%$ 空闲空间避免碎片。
 
-![FFS 块组布局](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_52.png)
+![FFS 块组布局](/blog/operating-systems/screenshot-52.png)
 
 打开 `/my/book/count` 的流程：
 
@@ -1016,7 +1016,7 @@ FFS：
 
 大目录常用哈希和 B-Tree，避免线性搜索。
 
-![大目录的 B-Tree / 哈希查找结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_54.png)
+![大目录的 B-Tree / 哈希查找结构](/blog/operating-systems/screenshot-54.png)
 
 NTFS：
 
@@ -1026,7 +1026,7 @@ NTFS：
 - 中文件记录 extent 起始块和长度。
 - 大文件记录指向其他 MFT 记录，形成层次结构。
 
-![NTFS MFT 与 extent](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_55.png)
+![NTFS MFT 与 extent](/blog/operating-systems/screenshot-55.png)
 
 ### mmap 与 Buffer Cache
 
@@ -1070,14 +1070,14 @@ RAID：
 - RAID 5：数据条带化，奇偶校验分布在磁盘上，任意损坏一块盘可由异或恢复。
 - RAID 6：允许一个条带中两块磁盘故障，使用更复杂擦除码。
 
-![RAID 条带与奇偶校验](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_59.png)
+![RAID 条带与奇偶校验](/blog/operating-systems/screenshot-59.png)
 
 可靠性方法：
 
 - **谨慎排序和恢复**：按安全顺序写入，崩溃后 fsck 扫描修复。
 - **版本控制与写时复制**：写新结构并链接未改变部分，最后声明新版本就绪。
 
-![写时复制生成新版本](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_60.png)
+![写时复制生成新版本](/blog/operating-systems/screenshot-60.png)
 
 事务：
 
@@ -1100,7 +1100,7 @@ Commit: 提交事务
 现代系统常只对元数据记录日志，以减少写两遍的开销。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>7. UNIX inode 结构相比 FAT 的一个关键优势是什么？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">7.</span><strong>UNIX inode 结构相比 FAT 的一个关键优势是什么？</strong></p>
   <label><input type="radio" name="osq7" value="A" /> A. inode 保存元数据和多级指针，使小文件和大文件都能较高效定位</label>
   <label><input type="radio" name="osq7" value="B" /> B. inode 要求所有文件块必须连续存储</label>
   <label><input type="radio" name="osq7" value="C" /> C. inode 禁止一个文件拥有多个文件名</label>
@@ -1146,7 +1146,7 @@ Commit: 提交事务
 3. 参与者执行 commit 并 ACK。
 4. 协调者收到 ACK 后记录 `Got Commit`。
 
-![两阶段提交协调者与参与者状态机](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_61.png)
+![两阶段提交协调者与参与者状态机](/blog/operating-systems/screenshot-61.png)
 
 缺点：阻塞。若 worker 已承诺 commit 后等待 `GLOBAL-*`，协调者故障会让 worker 阻塞并持有资源，直到协调者恢复或消息重发。
 
@@ -1158,7 +1158,7 @@ Dedup：
 - 重复则只保存 fingerprint；不重复则打包成容器、本地压缩并写磁盘。
 - 技术包括总结向量、流感知数据段布局、局部性保留缓存。
 
-![Dedup 局部性保留缓存结构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_64.png)
+![Dedup 局部性保留缓存结构](/blog/operating-systems/screenshot-64.png)
 
 IOFlow：
 
@@ -1181,7 +1181,7 @@ GFS 架构：
 - Client 与 master 交换元数据，直接和 chunkserver 传输文件数据。
 - Chunk 默认 64MB，通常复制三份。
 
-![GFS master 与 chunkserver 架构](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_65.png)
+![GFS master 与 chunkserver 架构](/blog/operating-systems/screenshot-65.png)
 
 GFS 写入流程：
 
@@ -1194,7 +1194,7 @@ GFS 写入流程：
 7. 辅助副本完成后 ACK 主副本。
 8. 主副本回复 client 成功或错误。
 
-![GFS 写入的控制流和数据流](https://raw.githubusercontent.com/zhy12138/class_notes/main/%E6%93%8D%E7%BB%9F/Screenshot_66.png)
+![GFS 写入的控制流和数据流](/blog/operating-systems/screenshot-66.png)
 
 ### EC-Cache 与 Chord
 
@@ -1213,7 +1213,7 @@ Chord：
 - 每个节点维护 $O(\log n)$ 状态，查找需要 $O(\log n)$ 消息。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>8. GFS 为什么让 client 直接和 chunkserver 传输数据，而不是让 master 转发所有文件数据？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">8.</span><strong>GFS 为什么让 client 直接和 chunkserver 传输数据，而不是让 master 转发所有文件数据？</strong></p>
   <label><input type="radio" name="osq8" value="A" /> A. 因为 master 不保存任何元数据</label>
   <label><input type="radio" name="osq8" value="B" /> B. 因为控制流和数据流分离可避免 master 成为数据瓶颈</label>
   <label><input type="radio" name="osq8" value="C" /> C. 因为 chunkserver 不能保存本地磁盘数据</label>
