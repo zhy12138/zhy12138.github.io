@@ -82,7 +82,7 @@ tags: []
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：线程抽象虚拟 CPU，是 CPU 调度的执行单位；进程抽象执行环境，是资源管理和隔离保护边界。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：线程抽象虚拟 CPU，是 CPU 调度的执行单位；进程抽象执行环境，是资源管理和隔离保护边界。</p>
 </div>
 
 ## 抽象：线程、进程、文件与 IPC
@@ -252,7 +252,7 @@ Client 调用序列：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：fork 会复制文件描述符映射，描述符可能指向同一个 open file description，因此共享偏移和文件状态。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：fork 会复制文件描述符映射，描述符可能指向同一个 open file description，因此共享偏移和文件状态。</p>
 </div>
 
 ## 同步：锁、信号量、管程和读者写者
@@ -445,7 +445,7 @@ Writer() {
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：Mesa-style 的 signal 不立即转交 CPU 和锁，等待者真正运行时共享状态可能已被其他线程改变，所以必须重新检查条件。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：Mesa-style 的 signal 不立即转交 CPU 和锁，等待者真正运行时共享状态可能已被其他线程改变，所以必须重新检查条件。</p>
 </div>
 
 ## 调度：目标、经典算法、Linux、死锁与现代调度
@@ -638,7 +638,7 @@ Banker's Algorithm 将检测条件替换为：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：SRTF 在可抢占且已知剩余运行时间的条件下，是最小化平均完成时间的标尺策略。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：SRTF 在可抢占且已知剩余运行时间的条件下，是最小化平均完成时间的标尺策略。</p>
 </div>
 
 ## 内存：地址翻译、TLB、Demand Paging 与现代内存管理
@@ -810,7 +810,7 @@ elif accessed == 0:
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：精确 LRU 要维护所有页面的最近使用顺序；Clock 只通过引用位给页面第二次机会，因此只能近似。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：精确 LRU 要维护所有页面的最近使用顺序；Clock 只通过引用位给页面第二次机会，因此只能近似。</p>
 </div>
 
 ## I/O、Disk and SSD
@@ -936,7 +936,7 @@ $$
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：当利用率接近 1，分母 $1-u$ 接近 0，排队时间快速增大，响应时间会非线性恶化。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：当利用率接近 1，分母 $1-u$ 接近 0，排队时间快速增大，响应时间会非线性恶化。</p>
 </div>
 
 ## 文件系统：结构、经典设计、缓存、可靠性和事务
@@ -1110,7 +1110,7 @@ Commit: 提交事务
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：inode 用直接和多级间接指针兼顾小文件与大文件；FAT 链表访问第 k 个块需要沿链表走，随机访问较差。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：inode 用直接和多级间接指针兼顾小文件与大文件；FAT 链表访问第 k 个块需要沿链表走，随机访问较差。</p>
 </div>
 
 ## 分布式系统与现代文件系统
@@ -1223,7 +1223,7 @@ Chord：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：GFS master 管元数据和控制决策，文件数据由 client 与 chunkserver 直接传输，从而避免单一 master 承担数据路径瓶颈。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：GFS master 管元数据和控制决策，文件数据由 client 与 chunkserver 直接传输，从而避免单一 master 承担数据路径瓶颈。</p>
 </div>
 
 # 易错点 / 高频考点

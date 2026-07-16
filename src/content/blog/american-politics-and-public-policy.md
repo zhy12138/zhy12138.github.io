@@ -103,7 +103,7 @@ tags: []
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：原笔记将警察理解为暴力震慑，将预算 / 税收体系理解为治理资金来源和控制工具，二者共同构成美国社会管理的核心。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：原笔记将警察理解为暴力震慑，将预算 / 税收体系理解为治理资金来源和控制工具，二者共同构成美国社会管理的核心。</p>
 </div>
 
 ## 警察体系
@@ -199,7 +199,7 @@ tags: []
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：所得税法理和 IRS-CI 的执法能力，使联邦政府绕开州，直接触达个人财物行为。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：所得税法理和 IRS-CI 的执法能力，使联邦政府绕开州，直接触达个人财物行为。</p>
 </div>
 
 ## 教育体系
@@ -321,7 +321,7 @@ FDA 药品审批流程：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：美国采用多方支付制度，治疗结束后经 CPT、ICD-10、保险合约和个人补差形成最终账单，透明度低。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：美国采用多方支付制度，治疗结束后经 CPT、ICD-10、保险合约和个人补差形成最终账单，透明度低。</p>
 </div>
 
 ## 移民政策与少数族裔管理
@@ -441,7 +441,7 @@ FDA 药品审批流程：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：警察权力维护公共秩序底线，征用权力则把私人财产转为公共用途或公共目的，后者受第五修正案公平补偿要求约束。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：警察权力维护公共秩序底线，征用权力则把私人财产转为公共用途或公共目的，后者受第五修正案公平补偿要求约束。</p>
 </div>
 
 ## 犯罪、毒品与枪支
@@ -515,7 +515,7 @@ FDA 药品审批流程：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：大监禁与联邦资助执法扩张、更多监狱、严刑政策和司法流程异化有关，不是取消地方警察预算。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：大监禁与联邦资助执法扩张、更多监狱、严刑政策和司法流程异化有关，不是取消地方警察预算。</p>
 </div>
 
 ## 贫穷与福利
@@ -583,7 +583,7 @@ FDA 药品审批流程：
     <button type="button" class="show-answer">显示答案</button>
   </div>
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：福利悬崖会让低收入者在收入小幅增加时失去关键救助，形成低薪陷阱和工作贫困。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：福利悬崖会让低收入者在收入小幅增加时失去关键救助，形成低薪陷阱和工作贫困。</p>
 </div>
 
 # 易错点 / 高频考点

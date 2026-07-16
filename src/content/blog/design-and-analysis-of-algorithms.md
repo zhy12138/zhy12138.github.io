@@ -73,7 +73,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：第三种情况除 $f(n)=\Omega(n^{\log_b a+\epsilon})$ 外，还需要满足正则条件 $af(n/b)\leq cf(n)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：第三种情况除 $f(n)=\Omega(n^{\log_b a+\epsilon})$ 外，还需要满足正则条件 $af(n/b)\leq cf(n)$。</p>
 </div>
 
 
@@ -116,7 +116,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：三元组版本得到 $O(n\log n)$；五元组版本通过减少子问题总代价得到 $O(n)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：三元组版本得到 $O(n\log n)$；五元组版本通过减少子问题总代价得到 $O(n)$。</p>
 </div>
 
 
@@ -158,7 +158,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：Hirschberg 算法时间复杂度不变，为 $O(mn)$，空间复杂度为 $O(m+n)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：Hirschberg 算法时间复杂度不变，为 $O(mn)$，空间复杂度为 $O(m+n)$。</p>
 </div>
 
 
@@ -200,7 +200,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：活动选择的贪心算法是按 $r_i$ 从小到大排序，能选则选，并可用交换论证证明。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：活动选择的贪心算法是按 $r_i$ 从小到大排序，能选则选，并可用交换论证证明。</p>
 </div>
 
 
@@ -250,7 +250,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：势能法的平摊代价为 $\hat c_i=实际代价_i+\Phi(D_i)-\Phi(D_{i-1})$。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：势能法的平摊代价为 $\hat c_i=实际代价_i+\Phi(D_i)-\Phi(D_{i-1})$。</p>
 </div>
 
 
@@ -299,7 +299,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：标准形要求最小化、等式约束、$b\geq0$、变量非负；整数性属于整数规划。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：标准形要求最小化、等式约束、$b\geq0$、变量非负；整数性属于整数规划。</p>
 </div>
 
 
@@ -350,7 +350,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：流值等于某割容量时，流达到所有割给出的上界，因此该流最大且该割最小。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：流值等于某割容量时，流达到所有割给出的上界，因此该流最大且该割最小。</p>
 </div>
 
 
@@ -382,7 +382,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：排序的不同输入排列对应决策树叶子，因此至少有 $n!$ 个叶子，深度下界为 $\lceil\log(n!)\rceil$。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：排序的不同输入排列对应决策树叶子，因此至少有 $n!$ 个叶子，深度下界为 $\lceil\log(n!)\rceil$。</p>
 </div>
 
 
@@ -414,7 +414,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：NP 完全问题需要同时满足 NP-hard 和属于 NP。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：NP 完全问题需要同时满足 NP-hard 和属于 NP。</p>
 </div>
 
 
@@ -455,7 +455,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：G-MPS 把任务分给当前负载最小机器，可推导出 $G-MPS(I)\leq(2-\frac1m)OPT(I)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：G-MPS 把任务分给当前负载最小机器，可推导出 $G-MPS(I)\leq(2-\frac1m)OPT(I)$。</p>
 </div>
 
 
@@ -496,7 +496,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：若 $AB=C$ 检验总通过；若不等，至少一半概率发现错误，因此是取伪型 co-RP。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：若 $AB=C$ 检验总通过；若不等，至少一半概率发现错误，因此是取伪型 co-RP。</p>
 </div>
 
 
@@ -540,7 +540,7 @@ tags: []
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：通过阶段划分可知 LRU 每阶段至多 $k$ 次缺页，而 OPT 至少一次，因此竞争比为 $k$。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：通过阶段划分可知 LRU 每阶段至多 $k$ 次缺页，而 OPT 至少一次，因此竞争比为 $k$。</p>
 </div>
 
 
