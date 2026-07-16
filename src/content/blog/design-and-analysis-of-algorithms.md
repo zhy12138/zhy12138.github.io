@@ -3,21 +3,20 @@ title: "算法设计与分析"
 description: "基于算分原始笔记整理的考前复习提纲，覆盖基础复杂度、分治、动态规划、贪心、线性规划、网络流、复杂度、NP 完全、近似、随机和在线算法。"
 pubDate: 2026-07-12
 draft: false
-tags: [课程笔记]
+tags: []
 ---
 
 # 原笔记信息
 
 - 原笔记来源：[class_notes/算分/算分.md](https://github.com/zhy12138/class_notes/tree/main/%E7%AE%97%E5%88%86)
+- **本资料由原笔记蒸馏整理，建议配合原笔记查漏补缺。**
 
-# 复习建议
+# 复习 / 预习建议
 
 - 第一轮先看“速览”和“易错点 / 高频考点”，把每个一级章节的核心目标串起来。
 - 第二轮重点背公式和结论：主定理、平摊势函数、LP 对偶、最大流最小割、近似比、Chernoff Bound、竞争比。
 - 第三轮按题型复习证明：贪心交换论证、网络流建模、NP 规约、决策树下界、近似比推导。
 - 做选择题时，错题回到对应章节，特别检查“适用条件”：如三角形不等式、整数容量、标准形、在线/离线区别。
-
-本资料由原笔记蒸馏整理，**建议配合原笔记查漏补缺**。
 
 # 速览
 
@@ -61,7 +60,7 @@ tags: [课程笔记]
   $$
 
 <div class="quiz-question" data-answer="C">
-  <p><strong>1. 关于主定理第三种情况，哪一项是原笔记明确要求的附加条件？</strong></p>
+  <p><strong>1. 关于主定理第三种情况，哪一项是需要同时满足的附加条件？</strong></p>
 
   <label><input type="radio" name="q1" value="A" /> A. $f(n)=\Theta(n^{\log_b a})$</label>
   <label><input type="radio" name="q1" value="B" /> B. $a=1,b=2$</label>
@@ -74,7 +73,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：原笔记在第三种情况中除 $\Omega$ 条件外，还写明需要 $af(n/b)\leq cf(n)$ 的条件。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。解析：第三种情况除 $f(n)=\Omega(n^{\log_b a+\epsilon})$ 外，还需要满足正则条件 $af(n/b)\leq cf(n)$。</p>
 </div>
 
 
@@ -104,7 +103,7 @@ tags: [课程笔记]
 - 卷积 / 单位根插值：利用 $A(x)=A_{even}(x^2)+xA_{odd}(x^2)$ 分治，复杂度 $O(n\log n)$。
 
 <div class="quiz-question" data-answer="B">
-  <p><strong>2. 确定性选择算法中，原笔记指出哪种分组方式可得到线性复杂度？</strong></p>
+  <p><strong>2. 确定性选择算法中，哪种分组方式可得到线性复杂度？</strong></p>
 
   <label><input type="radio" name="q2" value="A" /> A. 每 3 个一组，递推为 $T(n/3)+T(2n/3)+O(n)$</label>
   <label><input type="radio" name="q2" value="B" /> B. 每 5 个一组，递推为 $T(n/5)+T(7n/10)+O(n)$</label>
@@ -117,7 +116,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：三元组版本原笔记给出 $O(n\log n)$；五元组版本通过减少子问题总代价得到 $O(n)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。解析：三元组版本得到 $O(n\log n)$；五元组版本通过减少子问题总代价得到 $O(n)$。</p>
 </div>
 
 
@@ -127,7 +126,7 @@ tags: [课程笔记]
 
 - 定义：$s_1,s_2$ 的编辑距离是通过删除、增加、替换使二者相同的最小操作次数。
 - 状态：$f_{i,j}$ 表示 $s_1[1:i],s_2[1:j]$ 的编辑距离。
-- 原笔记给出转移：
+- 转移方程：
   $$
   f_{i,j}=\min\{f_{i-1,j}+1,f_{i,j-1}+1,f_{i-1,j-1}+[s_1[i]==s_2[j]]\}
   $$
@@ -143,7 +142,7 @@ tags: [课程笔记]
 
 - 树分解 $(T,X)$ 要满足点覆盖、边覆盖、同一图顶点对应的树节点连通。
 - 宽度为 $\max X(i)-1$；图的树宽是所有树分解中的最小宽度。
-- 树宽为 $k$ 时，可用树形 DP，原笔记给出复杂度 $O(k2^kN)$。
+- 树宽为 $k$ 时，可用树形 DP，复杂度 $O(k2^kN)$。
 
 <div class="quiz-question" data-answer="D">
   <p><strong>3. Hirschberg 算法相对普通编辑距离 DP 的主要空间优势是什么？</strong></p>
@@ -159,7 +158,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：原笔记说明 Hirschberg 时间复杂度不变，为 $O(mn)$，空间复杂度为 $O(m+n)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。解析：Hirschberg 算法时间复杂度不变，为 $O(mn)$，空间复杂度为 $O(m+n)$。</p>
 </div>
 
 
@@ -175,7 +174,7 @@ tags: [课程笔记]
 - 活动选择：按结束时间 $r_i$ 从小到大排序，能选则选；用交换论证证明。
 - 区间划分：按起点 $l_i$ 从小到大排序，能放则放；答案达到任意时刻最大重叠数下界。
 - 最坏延迟最小化调度：按截止时间 $d_i$ 从小到大安排；通过消除逆序证明最优。
-- 最优缓存调度：FF（Furthest in Future）回收未来最迟访问的数据；原笔记证明它是最优调度。
+- 最优缓存调度：FF（Furthest in Future）回收未来最迟访问的数据；它是最优离线调度。
 - Huffman 编码：最小频率的两个字符可作为最深且仅最后一位不同的一对叶子，递归合并得到最优编码。
 - MST：Prim 和 Kruskal 都通过交换论证证明每步选择可包含于某个最优解。
 - Dijkstra：每步加入当前可达最短的点，用归纳证明维护集合内最短路正确。
@@ -201,7 +200,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：原笔记对活动选择给出的算法是按 $r_i$ 从小到大排序，能选则选，并用交换论证证明。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。解析：活动选择的贪心算法是按 $r_i$ 从小到大排序，能选则选，并可用交换论证证明。</p>
 </div>
 
 
@@ -251,7 +250,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：原笔记给出 $\hat c_i=实际代价_i+\Phi(D_i)-\Phi(D_{i-1})$。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。解析：势能法的平摊代价为 $\hat c_i=实际代价_i+\Phi(D_i)-\Phi(D_{i-1})$。</p>
 </div>
 
 
@@ -320,7 +319,7 @@ tags: [课程笔记]
 - Ford-Fulkerson：不断找增广链；整数容量时有限终止，复杂度 $O(E|f^*|)$。
 - 余量网络：正边表示剩余容量，反边表示可退流。
 - Edmonds-Karp：BFS 找最短增广链，复杂度 $O(VE^2)$。
-- Dinic：构造分层辅助网络并求极大流，原笔记给出复杂度 $O(V^2E)$。
+- Dinic：构造分层辅助网络并求极大流，复杂度 $O(V^2E)$。
 
 **最小费用流**
 
@@ -338,7 +337,7 @@ tags: [课程笔记]
 - 整数流定理：容量等为整数时，网络流线性规划存在整数最优解；更一般地，TU Matrix 的线性规划存在整数最优解。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>7. 关于最大流最小割，哪一项符合原笔记结论？</strong></p>
+  <p><strong>7. 关于最大流最小割，哪一项是正确结论？</strong></p>
 
   <label><input type="radio" name="q7" value="A" /> A. 若 $v(f)=c(A,\overline A)$，则 $f$ 为最大流且该割为最小割</label>
   <label><input type="radio" name="q7" value="B" /> B. 任意可行流都等于任意割容量</label>
@@ -351,7 +350,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：A。解析：原笔记引理 3 说明流值等于某割容量时，流最大且割最小。</p>
+  <p class="quiz-explanation" hidden>正确答案：A。解析：流值等于某割容量时，流达到所有割给出的上界，因此该流最大且该割最小。</p>
 </div>
 
 
@@ -362,7 +361,7 @@ tags: [课程笔记]
 - 决策树模型：基于比较的算法对应决策树；排序的最坏复杂度下界为 $\lceil\log(n!)\rceil\approx n\log n-1.5n$。
 - 选择问题：
   - 找最大：$n-1$。
-  - 找最大和最小：上界 $\lceil 3n/2\rceil-2$，原笔记也给出对应下界思路。
+  - 找最大和最小：上界 $\lceil 3n/2\rceil-2$，并可通过下界思路说明必要比较次数。
   - 找第二大：锦标赛算法 $n+\lceil\log n\rceil-2$。
   - 找中位数：奇数 $n$ 时至少 $\frac{3(n-1)}2$ 次比较。
 - 图连通性对手论证：通过维护确定存在的边 $Y$ 和可能存在的边 $M$，可说明必须遍历所有边。
@@ -370,12 +369,12 @@ tags: [课程笔记]
 - 规约：若 $Q$ 已知下界且 $Q\leq_l P$，则 $P$ 至少和 $Q$ 一样难；最近点对、MST 可由元素唯一性规约得到 $\Omega(n\log n)$。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>8. 基于比较的排序问题，原笔记给出的最坏复杂度下界来自哪一项？</strong></p>
+  <p><strong>8. 基于比较的排序问题，最坏复杂度下界来自哪一项？</strong></p>
 
   <label><input type="radio" name="q8" value="A" /> A. 输入规模为 $n$</label>
   <label><input type="radio" name="q8" value="B" /> B. 每个元素最多比较一次</label>
   <label><input type="radio" name="q8" value="C" /> C. 决策树只有 $n$ 个叶子</label>
-  <label><input type="radio" name="q8" value="D" /> D. B 树有 $n!$ 个叶子，因此深度至少 $\lceil\log(n!)\rceil$</label>
+  <label><input type="radio" name="q8" value="D" /> D. 决策树有 $n!$ 个叶子，因此深度至少 $\lceil\log(n!)\rceil$</label>
 
   <div class="quiz-actions">
     <button type="button" class="submit-answer">提交答案</button>
@@ -383,7 +382,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：排序的不同输入排列对应叶子，原笔记用 $n!$ 个叶子推出 $\lceil\log(n!)\rceil$ 下界。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。解析：排序的不同输入排列对应决策树叶子，因此至少有 $n!$ 个叶子，深度下界为 $\lceil\log(n!)\rceil$。</p>
 </div>
 
 
@@ -415,7 +414,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：B。解析：原笔记定义 NP 完全性为 NP-hard 且属于 NP。</p>
+  <p class="quiz-explanation" hidden>正确答案：B。解析：NP 完全问题需要同时满足 NP-hard 和属于 NP。</p>
 </div>
 
 
@@ -432,13 +431,13 @@ tags: [课程笔记]
 - 满足三角形不等式的 TSP：
   - 最近邻法不是常数近似比。
   - MST 法是 2 近似。
-  - 最小权匹配法原笔记先给出 $MM(I)\leq \frac32OPT(I)$；后文出现“$\frac23$ 近似”表述，与前式不一致，复习时应按原笔记上下文核对。
+  - 最小权匹配法部分先给出 $MM(I)\leq \frac32OPT(I)$；后文出现“$\frac23$ 近似”表述，与前式不一致，复习时应回到上下文核对。
 - 不满足三角形不等式的 TSP：若存在常数近似算法，则可多项式解决 HC，推出 $P=NP$。
 - 01 背包：
   - G-KK 按 $v_i/w_i$ 贪心并与最大单物品比较，满足 $OPT(I)<2G-KK(I)$。
   - PTAS：枚举前 $m=\lceil1/\varepsilon\rceil$ 个物品组合后用 G-KK。
   - FPTAS：缩放价值后做伪多项式 DP，复杂度 $O(n^3(1+\frac1\varepsilon))$。
-- Set Cover 贪心：按 $c(S_i)/|S_i-V|$ 选，近似比为调和级数级别，原笔记给出紧实例说明无常数近似比。
+- Set Cover 贪心：按 $c(S_i)/|S_i-V|$ 选，近似比为调和级数级别；紧实例说明无常数近似比。
 - LP 舍入：若元素最大出现次数为 $f$，选 $x_S\geq1/f$ 的集合，近似比为 $f$。
 - 原始-对偶模式：若满足松弛互补条件的 $\alpha,\beta$ 版本，目标函数差距不超过 $\alpha\beta$。
 
@@ -456,7 +455,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：C。解析：原笔记完整推导了 $G-MPS(I)\leq(2-\frac1m)OPT(I)$。</p>
+  <p class="quiz-explanation" hidden>正确答案：C。解析：G-MPS 把任务分给当前负载最小机器，可推导出 $G-MPS(I)\leq(2-\frac1m)OPT(I)$。</p>
 </div>
 
 
@@ -484,7 +483,7 @@ tags: [课程笔记]
 - APSP：通过图平方、矩阵乘法和证据查找，可达 $O(MM(n)\log^2 n)$。
 
 <div class="quiz-question" data-answer="A">
-  <p><strong>11. 矩阵乘法检验算法在原笔记中属于哪类随机算法？</strong></p>
+  <p><strong>11. 矩阵乘法检验算法属于哪类随机算法？</strong></p>
 
   <label><input type="radio" name="q11" value="A" /> A. co-RP</label>
   <label><input type="radio" name="q11" value="B" /> B. 拉斯维加斯算法</label>
@@ -508,7 +507,7 @@ tags: [课程笔记]
 
 **K 服务问题**
 
-- 贪心“最近车响应”不一定好；原笔记给出 $A-B-C$ 的反例。
+- 贪心“最近车响应”不一定好；$A-B-C$ 的构造可作为反例。
 - 构造 $n=k+1$、每次请求空位置，可证明竞争比下界为 $k$。
 - K 服务猜想：存在一般 K 服务问题的 $k$ 竞争在线算法；一些特殊情形已找到。
 
@@ -528,7 +527,7 @@ tags: [课程笔记]
 - 树上推广：所有有效服务以相同速度向请求点移动，势函数思路为 $\Phi=k|M_{min}|+\sum_{i<j}d(s_i,s_j)$。
 
 <div class="quiz-question" data-answer="D">
-  <p><strong>12. 页调度问题中，原笔记证明 LRU 的竞争比为多少？</strong></p>
+  <p><strong>12. 页调度问题中，LRU 的竞争比为多少？</strong></p>
 
   <label><input type="radio" name="q12" value="A" /> A. 1</label>
   <label><input type="radio" name="q12" value="B" /> B. 2</label>
@@ -541,7 +540,7 @@ tags: [课程笔记]
   </div>
 
   <p class="quiz-result" hidden></p>
-  <p class="quiz-explanation" hidden>正确答案：D。解析：原笔记通过阶段划分证明 LRU 每阶段至多 $k$ 次缺页，而 OPT 至少一次，因此竞争比为 $k$。</p>
+  <p class="quiz-explanation" hidden>正确答案：D。解析：通过阶段划分可知 LRU 每阶段至多 $k$ 次缺页，而 OPT 至少一次，因此竞争比为 $k$。</p>
 </div>
 
 
@@ -558,5 +557,4 @@ tags: [课程笔记]
 - Ford-Fulkerson 对整数容量有限终止；无理容量可能不终止。
 - NP-hard 不等于 NPC；NPC 还必须属于 NP。
 - 近似比对最小化和最大化问题的分式方向不同。
-- 原笔记中 TSP 最小权匹配法部分存在“$\frac32$”和“$\frac23$”表述不一致，复习时应回到原文上下文核对。
-
+- TSP 最小权匹配法部分存在“$\frac32$”和“$\frac23$”表述不一致，复习时应回到上下文核对。
