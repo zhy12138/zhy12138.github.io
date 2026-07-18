@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Interactive map demo base image</title>
+  <desc id="desc">A simplified campus style map with lake, library, studio, garden, roads, and paths.</desc>
+  <rect width="1200" height="720" fill="#eef7f4"/>
+  <path d="M0 565 C150 520 275 560 410 530 C575 492 720 520 880 492 C1020 468 1100 505 1200 468 L1200 720 L0 720 Z" fill="#d9efe4"/>
+  <path d="M708 64 C858 84 948 170 930 286 C912 407 768 454 630 414 C492 374 454 260 520 158 C560 96 618 52 708 64 Z" fill="#bfe3f5"/>
+  <path d="M705 104 C828 119 892 184 879 274 C865 369 754 405 645 376 C536 347 506 261 558 183 C590 134 637 96 705 104 Z" fill="#9bd0ed"/>
+  <path d="M0 346 L1200 236" stroke="#f8f2df" stroke-width="64" stroke-linecap="round"/>
+  <path d="M0 346 L1200 236" stroke="#d4b677" stroke-width="4" stroke-dasharray="18 18" opacity=".6"/>
+  <path d="M278 0 C315 112 286 218 330 332 C366 425 480 492 520 720" stroke="#f8f2df" stroke-width="54" stroke-linecap="round" fill="none"/>
+  <path d="M278 0 C315 112 286 218 330 332 C366 425 480 492 520 720" stroke="#d4b677" stroke-width="4" stroke-dasharray="18 18" opacity=".6" fill="none"/>
+  <path d="M205 224 C335 178 450 180 545 230" stroke="#ffffff" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M628 450 C746 514 880 530 1012 492" stroke="#ffffff" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M768 126 C792 204 768 294 706 368" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <g fill="#ffffff" stroke="#9eb8c9" stroke-width="4">
+    <rect x="120" y="92" width="210" height="118" rx="10"/>
+    <rect x="370" y="418" width="250" height="140" rx="10"/>
+    <rect x="850" y="90" width="220" height="112" rx="10"/>
+    <rect x="850" y="534" width="185" height="92" rx="10"/>
+  </g>
+  <g fill="#d9e7f2">
+    <rect x="145" y="118" width="52" height="66" rx="4"/>
+    <rect x="215" y="118" width="52" height="66" rx="4"/>
+    <rect x="395" y="446" width="62" height="82" rx="4"/>
+    <rect x="474" y="446" width="62" height="82" rx="4"/>
+    <rect x="875" y="116" width="62" height="60" rx="4"/>
+    <rect x="954" y="116" width="62" height="60" rx="4"/>
+  </g>
+  <g fill="#8ecf9f" opacity=".85">
+    <circle cx="156" cy="502" r="34"/>
+    <circle cx="218" cy="550" r="46"/>
+    <circle cx="1080" cy="360" r="58"/>
+    <circle cx="990" cy="410" r="38"/>
+    <circle cx="720" cy="610" r="50"/>
+  </g>
+  <g fill="#34505f" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="28">
+    <text x="156" y="161">Library</text>
+    <text x="418" y="494">Studio</text>
+    <text x="882" y="156">Gallery</text>
+    <text x="884" y="592">Garden</text>
+    <text x="638" y="254">Lake</text>
+  </g>
+</svg>

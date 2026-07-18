@@ -1,9 +1,11 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSlug, hasDemoTag } from '../lib/blog';
 
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
+  .filter((post) => !hasDemoTag(post))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 
@@ -28,7 +30,6 @@ const schools = [
   },
 ];
 
-const getSlug = (id: string) => id.replace(/\.mdx?$/, '');
 ---
 
 <BaseLayout title="Home | zhy12138" description="zhy12138 的个人网站与 Markdown 博客入口。">

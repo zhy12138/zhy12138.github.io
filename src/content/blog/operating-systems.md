@@ -3,7 +3,7 @@ title: "操作系统"
 description: "操作系统笔记蒸馏，覆盖进程线程、文件与 IPC、同步、调度、虚拟内存、I/O、文件系统、事务和分布式文件系统。"
 pubDate: 2026-07-17
 draft: false
-tags: []
+tags: ["课程笔记"]
 ---
 
 # 原笔记信息

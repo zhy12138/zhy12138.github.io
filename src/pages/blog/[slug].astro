@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getTagClass, getTagHref } from '../../lib/blog';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -14,162 +15,222 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
-const headingCounters = [0, 0, 0, 0, 0, 0];
+const isCourseNote = post.data.tags.includes('课程笔记');
+const isMapPost = post.data.tags.includes('地图');
+const courseNoteNumberedSection = '知识点整理';
+const headingCounters = [0, 0, 0, 0, 0];
+let isInCourseNoteNumberedSection = false;
 const toc = headings.map((heading) => {
-  const index = heading.depth - 1;
-  headingCounters[index] += 1;
-  headingCounters.fill(0, index + 1);
+  let number = '';
+
+  if (isCourseNote) {
+    if (heading.depth === 1) {
+      isInCourseNoteNumberedSection = heading.text === courseNoteNumberedSection;
+      headingCounters.fill(0);
+    } else if (isInCourseNoteNumberedSection) {
+      const index = heading.depth - 2;
+      headingCounters[index] += 1;
+      headingCounters.fill(0, index + 1);
+      number = headingCounters.slice(0, index + 1).filter(Boolean).join('.');
+    }
+  }
 
   return {
     ...heading,
-    number: headingCounters.slice(0, index + 1).filter(Boolean).join('.'),
+    number,
   };
 });
 ---
 
 <BaseLayout title={`${post.data.title} | zhy12138`} description={post.data.description}>
-  <div class="article-layout">
-    <article class="article">
+  <div class:list={['article-layout', { 'has-course-note-aside': isCourseNote }]}>
+    <article class:list={['article', { 'is-course-note': isCourseNote }]}>
       <header>
         <a class="back" href="/blog/">返回 Blog</a>
         <time datetime={post.data.pubDate.toISOString()}>
           {post.data.pubDate.toLocaleDateString('zh-CN')}
         </time>
+        {
+          post.data.tags.length > 0 && (
+            <ul class="article-tags" aria-label="文章标签">
+              {post.data.tags.map((tag) => (
+                <li>
+                  <a class:list={['article-tag', getTagClass(tag)]} href={getTagHref(tag)}>
+                    {tag}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
         <h1>{post.data.title}</h1>
         {post.data.description && <p>{post.data.description}</p>}
       </header>
-      <div class="content" id="article-content">
+      <div
+        class:list={['content', { 'is-course-note': isCourseNote, 'is-map-post': isMapPost }]}
+        id="article-content"
+      >
         <Content />
       </div>
     </article>
 
-    <aside class="article-aside" aria-label="文章目录">
-      <div class="reading-card">
-        <div class="progress-head">
-          <span>阅读进度</span>
-          <strong id="reading-percent">0%</strong>
-        </div>
-        <div class="progress-track" aria-hidden="true">
-          <span id="reading-progress"></span>
-        </div>
-      </div>
+    {
+      isCourseNote && (
+        <aside class="article-aside" aria-label="文章目录">
+          <div class="reading-card">
+            <div class="progress-head">
+              <span>阅读进度</span>
+              <strong id="reading-percent">0%</strong>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <span id="reading-progress" />
+            </div>
+          </div>
 
-      {
-        toc.length > 0 && (
-          <nav class="toc" aria-label="目录">
-            <p>目录</p>
-            <ol>
-              {toc.map((heading) => (
-                <li class={`depth-${heading.depth}`}>
-                  <a href={`#${heading.slug}`}>
-                    <span class="toc-number">{heading.number}</span>
-                    <span>{heading.text}</span>
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )
-      }
-    </aside>
+          {toc.length > 0 && (
+            <nav class="toc" aria-label="目录">
+              <p>目录</p>
+              <ol>
+                {toc.map((heading) => (
+                  <li class={`depth-${heading.depth}`}>
+                    <a href={`#${heading.slug}`}>
+                      {heading.number && <span class="toc-number">{heading.number}</span>}
+                      <span>{heading.text}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
+        </aside>
+      )
+    }
   </div>
 
   <script>
-    const progressBar = document.querySelector<HTMLElement>('#reading-progress');
-    const progressPercent = document.querySelector<HTMLElement>('#reading-percent');
-    const article = document.querySelector<HTMLElement>('#article-content');
-    const tocLinks = Array.from(document.querySelectorAll('.toc a'));
-    function getHashId(link: Element) {
-      const href = link.getAttribute('href');
-      return href?.startsWith('#') ? decodeURIComponent(href.slice(1)) : '';
-    }
-
-    const headings = tocLinks
-      .map((link) => document.getElementById(getHashId(link)))
-      .filter((heading): heading is HTMLElement => Boolean(heading));
-
-    let updateFrame = 0;
-
-    function updateArticleState() {
-      if (!article || !progressBar || !progressPercent) return;
-
-      const rect = article.getBoundingClientRect();
-      const readable = Math.max(1, rect.height - window.innerHeight);
-      const progress = Math.min(1, Math.max(0, -rect.top / readable));
-      const percent = Math.round(progress * 100);
-
-      progressBar.style.width = `${percent}%`;
-      progressPercent.textContent = `${percent}%`;
-
-      let activeId = '';
-      for (const heading of headings) {
-        if (heading.getBoundingClientRect().top <= 120) {
-          activeId = heading.id;
-        }
+    const courseNoteContent = document.querySelector<HTMLElement>('.content.is-course-note');
+    if (courseNoteContent) {
+      const courseNoteArticle = courseNoteContent;
+      const progressBar = document.querySelector<HTMLElement>('#reading-progress');
+      const progressPercent = document.querySelector<HTMLElement>('#reading-percent');
+      const tocLinks = Array.from(document.querySelectorAll('.toc a'));
+      function getHashId(link: Element) {
+        const href = link.getAttribute('href');
+        return href?.startsWith('#') ? decodeURIComponent(href.slice(1)) : '';
       }
 
-      let activeLink: Element | undefined;
-      tocLinks.forEach((link) => {
-        const isActive = getHashId(link) === activeId;
-        if (isActive) activeLink = link;
-        if (isActive) {
-          link.setAttribute('aria-current', 'true');
-        } else {
-          link.removeAttribute('aria-current');
+      const headings = tocLinks
+        .map((link) => document.getElementById(getHashId(link)))
+        .filter((heading): heading is HTMLElement => Boolean(heading));
+
+      let updateFrame = 0;
+
+      function updateArticleState() {
+        if (!progressBar || !progressPercent) return;
+
+        const rect = courseNoteArticle.getBoundingClientRect();
+        const readable = Math.max(1, rect.height - window.innerHeight);
+        const progress = Math.min(1, Math.max(0, -rect.top / readable));
+        const percent = Math.round(progress * 100);
+
+        progressBar.style.width = `${percent}%`;
+        progressPercent.textContent = `${percent}%`;
+
+        let activeId = '';
+        for (const heading of headings) {
+          if (heading.getBoundingClientRect().top <= 120) {
+            activeId = heading.id;
+          }
         }
-      });
-      activeLink?.scrollIntoView({ block: 'nearest' });
-    }
 
-    function scheduleArticleStateUpdate() {
-      if (updateFrame) return;
-      updateFrame = window.requestAnimationFrame(() => {
-        updateFrame = 0;
-        updateArticleState();
-      });
-    }
-
-    function renderQuizMath() {
-      if (!('renderMathInElement' in window)) return;
-      const renderMath = window.renderMathInElement as typeof import('katex/contrib/auto-render');
-
-      document.querySelectorAll<HTMLElement>('.quiz-question').forEach((element) => {
-        if (element.dataset.mathRendered === 'true') return;
-        renderMath(element, {
-          delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '$', right: '$', display: false },
-            { left: '\\(', right: '\\)', display: false },
-            { left: '\\[', right: '\\]', display: true },
-          ],
-          throwOnError: false,
+        let activeLink: Element | undefined;
+        tocLinks.forEach((link) => {
+          const isActive = getHashId(link) === activeId;
+          if (isActive) activeLink = link;
+          if (isActive) {
+            link.setAttribute('aria-current', 'true');
+          } else {
+            link.removeAttribute('aria-current');
+          }
         });
-        element.dataset.mathRendered = 'true';
-      });
-    }
+        activeLink?.scrollIntoView({ block: 'nearest' });
+      }
 
-    function markQuizOption(question: Element, value: string | null, className: string) {
-      if (!value) return;
-      const input = question.querySelector<HTMLInputElement>(`input[value="${CSS.escape(value)}"]`);
-      input?.closest('label')?.classList.add(className);
-    }
+      function scheduleArticleStateUpdate() {
+        if (updateFrame) return;
+        updateFrame = window.requestAnimationFrame(() => {
+          updateFrame = 0;
+          updateArticleState();
+        });
+      }
 
-    function lockQuiz(question: Element) {
-      question.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-        input.disabled = true;
-      });
-      const actions = question.querySelector<HTMLElement>('.quiz-actions');
-      if (actions) actions.hidden = true;
-    }
+      function annotateCourseNoteHeadings() {
+        const numberedSectionTitle = '知识点整理';
+        const counters = [0, 0, 0, 0, 0];
+        let isInNumberedSection = false;
 
-    function getCodeLanguage(code: HTMLElement, pre: HTMLPreElement) {
-      const languageClass = Array.from(code.classList).find((className) =>
-        className.startsWith('language-')
-      );
-      return languageClass?.replace('language-', '') || pre.dataset.language || 'code';
-    }
+        courseNoteArticle
+          .querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')
+          .forEach((heading) => {
+            delete heading.dataset.noteNumber;
 
-    function appendHighlightedPseudoLine(lineElement: HTMLElement, text: string) {
+            const depth = Number(heading.tagName.slice(1));
+            if (depth === 1) {
+              isInNumberedSection = heading.textContent?.trim() === numberedSectionTitle;
+              counters.fill(0);
+              return;
+            }
+
+            if (!isInNumberedSection) return;
+
+            const index = depth - 2;
+            counters[index] += 1;
+            counters.fill(0, index + 1);
+            heading.dataset.noteNumber = counters.slice(0, index + 1).filter(Boolean).join('.');
+          });
+      }
+
+      function renderQuizMath() {
+        if (!('renderMathInElement' in window)) return;
+        const renderMath = window.renderMathInElement as typeof import('katex/contrib/auto-render');
+
+        courseNoteArticle.querySelectorAll<HTMLElement>('.quiz-question').forEach((element) => {
+          if (element.dataset.mathRendered === 'true') return;
+          renderMath(element, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false,
+          });
+          element.dataset.mathRendered = 'true';
+        });
+      }
+
+      function markQuizOption(question: Element, value: string | null, className: string) {
+        if (!value) return;
+        const input = question.querySelector<HTMLInputElement>(`input[value="${CSS.escape(value)}"]`);
+        input?.closest('label')?.classList.add(className);
+      }
+
+      function lockQuiz(question: Element) {
+        question.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
+          input.disabled = true;
+        });
+        const actions = question.querySelector<HTMLElement>('.quiz-actions');
+        if (actions) actions.hidden = true;
+      }
+
+      function getCodeLanguage(code: HTMLElement, pre: HTMLPreElement) {
+        const languageClass = Array.from(code.classList).find((className) =>
+          className.startsWith('language-')
+        );
+        return languageClass?.replace('language-', '') || pre.dataset.language || 'code';
+      }
+
+      function appendHighlightedPseudoLine(lineElement: HTMLElement, text: string) {
       const keywordPattern =
         /\b(acquire|advance|begin|break|commit|continue|disable_interrupt|elif|else|enable_interrupt|for|if|loop|pop|put|release|replace|return|rollback|stop|unlock|wait|while)\b/gi;
       let cursor = 0;
@@ -192,7 +253,7 @@ const toc = headings.map((heading) => {
       }
     }
 
-    function wrapCodeLineContent(line: HTMLElement) {
+      function wrapCodeLineContent(line: HTMLElement) {
       if (line.querySelector(':scope > .code-line-content')) return;
 
       const content = document.createElement('span');
@@ -209,7 +270,7 @@ const toc = headings.map((heading) => {
       line.append(content);
     }
 
-    async function copyCode(button: HTMLButtonElement, text: string) {
+      async function copyCode(button: HTMLButtonElement, text: string) {
       try {
         await navigator.clipboard.writeText(text);
       } catch {
@@ -233,8 +294,8 @@ const toc = headings.map((heading) => {
       }, 1400);
     }
 
-    function enhanceCodeBlocks() {
-      document.querySelectorAll<HTMLElement>('.content pre > code').forEach((code) => {
+      function enhanceCodeBlocks() {
+        courseNoteArticle.querySelectorAll<HTMLElement>('pre > code').forEach((code) => {
         const pre = code.parentElement;
         if (!(pre instanceof HTMLPreElement)) return;
         if (pre.closest('.code-frame')) return;
@@ -302,7 +363,7 @@ const toc = headings.map((heading) => {
       });
     }
 
-    document.querySelectorAll('.quiz-question').forEach((question) => {
+      courseNoteArticle.querySelectorAll('.quiz-question').forEach((question) => {
       const answer = question.getAttribute('data-answer');
       const submitButton = question.querySelector('.submit-answer');
       const showButton = question.querySelector('.show-answer');
@@ -345,17 +406,219 @@ const toc = headings.map((heading) => {
       });
     });
 
-    enhanceCodeBlocks();
-    scheduleArticleStateUpdate();
-    if (document.readyState === 'complete') {
-      renderQuizMath();
-    } else {
-      window.addEventListener('load', renderQuizMath, { once: true });
+      enhanceCodeBlocks();
+      annotateCourseNoteHeadings();
+      scheduleArticleStateUpdate();
+      if (document.readyState === 'complete') {
+        renderQuizMath();
+      } else {
+        window.addEventListener('load', renderQuizMath, { once: true });
+      }
+      window.addEventListener('load', scheduleArticleStateUpdate, { once: true });
+      window.addEventListener('scroll', scheduleArticleStateUpdate, { passive: true });
+      window.addEventListener('resize', scheduleArticleStateUpdate);
+      window.addEventListener('hashchange', scheduleArticleStateUpdate);
     }
-    window.addEventListener('load', scheduleArticleStateUpdate, { once: true });
-    window.addEventListener('scroll', scheduleArticleStateUpdate, { passive: true });
-    window.addEventListener('resize', scheduleArticleStateUpdate);
-    window.addEventListener('hashchange', scheduleArticleStateUpdate);
+
+    const mapPostContent = document.querySelector<HTMLElement>('.content.is-map-post');
+    if (mapPostContent) {
+      const mapDetailSources = new Map<string, HTMLElement>();
+      const mapEditMode = new URLSearchParams(window.location.search).has('map-edit');
+      const commentWalker = document.createTreeWalker(mapPostContent, NodeFilter.SHOW_COMMENT);
+      const detailStartPattern = /^map-detail:([^:]+):(.+)$/;
+      const commentNodes: Comment[] = [];
+      let currentComment = commentWalker.nextNode();
+
+      while (currentComment) {
+        commentNodes.push(currentComment as Comment);
+        currentComment = commentWalker.nextNode();
+      }
+
+      function mapDetailKey(mapId: string, targetId: string) {
+        return `${mapId}::${targetId}`;
+      }
+
+      function makeMapBackButton() {
+        const button = document.createElement('button');
+        button.className = 'map-back';
+        button.type = 'button';
+        button.setAttribute('aria-label', '关闭详情');
+        button.textContent = '关闭';
+        return button;
+      }
+
+      commentNodes.forEach((comment) => {
+        const commentText = comment.nodeValue?.trim() ?? '';
+        const detailMatch = commentText.match(detailStartPattern);
+        if (!detailMatch) return;
+
+        const parent = comment.parentNode;
+        if (!parent) return;
+
+        const [, mapId, targetId] = detailMatch;
+        const detailNodes: ChildNode[] = [];
+        let cursor = comment.nextSibling;
+
+        while (cursor) {
+          if (cursor.nodeType === Node.COMMENT_NODE && cursor.nodeValue?.trim() === '/map-detail') break;
+          detailNodes.push(cursor);
+          cursor = cursor.nextSibling;
+        }
+
+        if (!cursor) return;
+
+        const detail = document.createElement('section');
+        detail.className = 'map-detail';
+        detail.id = `map-detail-${mapId}-${targetId}`;
+        detail.hidden = true;
+        detail.tabIndex = -1;
+        detail.dataset.target = targetId;
+        detail.append(makeMapBackButton());
+        detailNodes.forEach((node) => detail.append(node));
+        mapDetailSources.set(mapDetailKey(mapId, targetId), detail);
+        parent.removeChild(cursor);
+        parent.removeChild(comment);
+      });
+
+      function initMapEditor(widget: HTMLElement, mapStage: HTMLElement, mapId: string) {
+        if (!mapEditMode) return;
+
+        widget.classList.add('is-map-editing');
+        mapStage.setAttribute('title', '点击地图空白位置生成 marker 坐标');
+
+        const editor = document.createElement('div');
+        editor.className = 'map-editor';
+        editor.setAttribute('aria-live', 'polite');
+        editor.textContent = '点击地图空白位置生成 marker 片段。';
+        editor.addEventListener('click', (event) => event.stopPropagation());
+        mapStage.append(editor);
+
+        function renderSnippet(snippet: string, statusText: string) {
+          editor.textContent = '';
+
+          const status = document.createElement('p');
+          status.textContent = statusText;
+
+          const code = document.createElement('code');
+          code.textContent = snippet;
+
+          const pre = document.createElement('pre');
+          pre.append(code);
+
+          editor.append(status, pre);
+        }
+
+        mapStage.addEventListener('click', (event) => {
+          if ((event.target as Element | null)?.closest('.map-marker')) return;
+
+          const rect = mapStage.getBoundingClientRect();
+          const x = (((event.clientX - rect.left) / rect.width) * 100).toFixed(2);
+          const y = (((event.clientY - rect.top) / rect.height) * 100).toFixed(2);
+          const targetId = 'new-place';
+          const snippet = `<button class="map-marker" type="button" data-x="${x}" data-y="${y}" data-target="${targetId}" aria-label="查看地点"></button>`;
+
+          renderSnippet(snippet, `map-id: ${mapId}，坐标 x=${x} y=${y}`);
+          navigator.clipboard
+            ?.writeText(snippet)
+            .then(() => renderSnippet(snippet, `已复制 marker 片段：x=${x} y=${y}`))
+            .catch(() => renderSnippet(snippet, `无法自动复制，请手动复制：x=${x} y=${y}`));
+        });
+      }
+
+      mapPostContent.querySelectorAll<HTMLElement>('.map-widget').forEach((widget, widgetIndex) => {
+        const mapId = widget.dataset.mapId ?? `map-${widgetIndex + 1}`;
+        widget.dataset.mapId = mapId;
+        const mapStage = widget.querySelector<HTMLElement>('.map-stage');
+        const markers = Array.from(widget.querySelectorAll<HTMLButtonElement>('.map-marker'));
+        let detailPanel = widget.querySelector<HTMLElement>('.map-detail-panel');
+        if (!detailPanel) {
+          detailPanel = document.createElement('div');
+          detailPanel.className = 'map-detail-panel';
+          detailPanel.hidden = true;
+          widget.append(detailPanel);
+        }
+
+        markers.forEach((marker) => {
+          const targetId = marker.dataset.target;
+          if (!targetId || detailPanel?.querySelector(`.map-detail[data-target="${CSS.escape(targetId)}"]`)) {
+            return;
+          }
+
+          const detailSource = mapDetailSources.get(mapDetailKey(mapId, targetId));
+          if (detailSource) detailPanel?.append(detailSource);
+        });
+
+        const details = Array.from(detailPanel.querySelectorAll<HTMLElement>('.map-detail'));
+        let activeMarker: HTMLButtonElement | null = null;
+        if (mapStage && !mapStage.hasAttribute('tabindex')) mapStage.tabIndex = -1;
+        if (detailPanel && !detailPanel.hasAttribute('tabindex')) detailPanel.tabIndex = -1;
+        details.forEach((detail) => {
+          if (!detail.hasAttribute('tabindex')) detail.tabIndex = -1;
+        });
+
+        function setActiveDetail(targetId: string | null) {
+          activeMarker = markers.find((marker) => marker.dataset.target === targetId) ?? null;
+          markers.forEach((marker) => {
+            marker.classList.toggle('is-active', Boolean(targetId) && marker.dataset.target === targetId);
+            marker.setAttribute(
+              'aria-expanded',
+              String(Boolean(targetId) && marker.dataset.target === targetId)
+            );
+          });
+
+          details.forEach((detail) => {
+            detail.hidden = (detail.dataset.target ?? detail.id) !== targetId;
+          });
+
+          widget.classList.toggle('has-active-detail', Boolean(targetId));
+          if (detailPanel) detailPanel.hidden = !targetId;
+          document.body.classList.toggle(
+            'has-map-overlay',
+            Boolean(mapPostContent?.querySelector('.map-detail-panel:not([hidden])'))
+          );
+        }
+
+        function closeActiveDetail() {
+          const focusTarget = activeMarker;
+          setActiveDetail(null);
+          focusTarget?.focus();
+          if (!focusTarget) mapStage?.focus();
+        }
+
+        markers.forEach((marker) => {
+          marker.style.left = `${marker.dataset.x ?? '50'}%`;
+          marker.style.top = `${marker.dataset.y ?? '50'}%`;
+          marker.title = marker.getAttribute('aria-label') ?? '';
+          marker.setAttribute('aria-expanded', 'false');
+
+          marker.addEventListener('click', () => {
+            const targetId = marker.dataset.target;
+            if (!targetId) return;
+            setActiveDetail(targetId);
+            details.find((detail) => (detail.dataset.target ?? detail.id) === targetId)?.focus();
+          });
+        });
+
+        widget.querySelectorAll<HTMLButtonElement>('.map-back').forEach((button) => {
+          button.addEventListener('click', () => {
+            closeActiveDetail();
+          });
+        });
+
+        detailPanel?.addEventListener('click', (event) => {
+          if (event.target !== detailPanel) return;
+          closeActiveDetail();
+        });
+
+        widget.addEventListener('keydown', (event) => {
+          if (event.key !== 'Escape') return;
+          closeActiveDetail();
+        });
+
+        setActiveDetail(null);
+        if (mapStage) initMapEditor(widget, mapStage, mapId);
+      });
+    }
   </script>
 
   <style>
@@ -383,6 +646,48 @@ const toc = headings.map((heading) => {
       font-size: 0.95rem;
     }
 
+    .article-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .article-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border: 1px solid rgba(20, 103, 216, 0.18);
+      border-radius: 8px;
+      background: rgba(20, 103, 216, 0.08);
+      color: var(--primary-strong);
+      font-size: 0.82rem;
+      font-weight: 760;
+      line-height: 1;
+    }
+
+    .article-tag:hover,
+    .article-tag:focus-visible {
+      border-color: rgba(20, 103, 216, 0.36);
+      background: rgba(20, 103, 216, 0.14);
+      outline: none;
+    }
+
+    .article-tag.is-course-note-tag {
+      border-color: rgba(0, 167, 181, 0.28);
+      background: rgba(0, 167, 181, 0.1);
+      color: #075e64;
+    }
+
+    .article-tag.is-map-tag {
+      border-color: rgba(191, 91, 37, 0.3);
+      background: rgba(255, 180, 84, 0.16);
+      color: #8f5200;
+    }
+
     h1 {
       margin: 12px 0 0;
       font-size: clamp(2.1rem, 7vw, 4rem);
@@ -398,6 +703,309 @@ const toc = headings.map((heading) => {
     }
 
     .content {
+      margin-top: 36px;
+      padding-top: 26px;
+      border-top: 1px solid var(--line);
+      line-height: 1.82;
+      overflow-wrap: break-word;
+    }
+
+    .content :global(p) {
+      margin: 1.1em 0;
+    }
+
+    .content :global(ul),
+    .content :global(ol) {
+      margin: 1em 0;
+      padding-left: 1.45em;
+    }
+
+    .content :global(li) {
+      margin: 0.34em 0;
+      padding-left: 0.1em;
+    }
+
+    .content :global(li > ul),
+    .content :global(li > ol) {
+      margin: 0.36em 0 0.5em;
+    }
+
+    .content :global(a) {
+      color: var(--primary-strong);
+      font-weight: 660;
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.18em;
+    }
+
+    .content :global(h1),
+    .content :global(h2),
+    .content :global(h3),
+    .content :global(h4),
+    .content :global(h5),
+    .content :global(h6) {
+      margin: 1.75em 0 0.7em;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+
+    .content :global(code) {
+      padding: 0.12em 0.36em;
+      border-radius: 6px;
+      background: rgba(20, 103, 216, 0.08);
+      color: var(--primary-strong);
+      font-family:
+        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, ui-monospace, monospace;
+      font-size: 0.9em;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .content :global(pre) {
+      margin: 1.25em 0;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: #172033;
+    }
+
+    .content :global(pre code) {
+      display: block;
+      padding: 14px 16px;
+      border-radius: 0;
+      background: transparent;
+      color: #e7eefb;
+      overflow-wrap: normal;
+      tab-size: 2;
+      white-space: pre;
+      word-break: normal;
+    }
+
+    .content.is-map-post :global(.map-widget) {
+      --map-pin: #c2353a;
+      --map-pin-soft: rgba(194, 53, 58, 0.12);
+      --map-panel: rgba(255, 255, 255, 0.94);
+      --map-marker-size: 18px;
+      margin: 1.6em 0;
+      border: 1px solid rgba(220, 232, 245, 0.9);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 16px 36px rgba(42, 88, 138, 0.12);
+      overflow: hidden;
+    }
+
+    .content.is-map-post :global(.map-widget[data-map-layout='wide']) {
+      width: min(1180px, calc(100vw - 32px));
+      max-width: none;
+      margin-right: calc((100% - min(1180px, calc(100vw - 32px))) / 2);
+      margin-left: calc((100% - min(1180px, calc(100vw - 32px))) / 2);
+    }
+
+    .content.is-map-post :global(.map-stage) {
+      position: relative;
+      background: #eef7f4;
+      outline: none;
+    }
+
+    .content.is-map-post :global(.map-widget.is-map-editing .map-stage) {
+      cursor: crosshair;
+    }
+
+    .content.is-map-post :global(.map-stage:focus-visible) {
+      box-shadow: inset 0 0 0 3px rgba(20, 103, 216, 0.28);
+    }
+
+    .content.is-map-post :global(.map-image) {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: #eef7f4;
+      box-shadow: none;
+    }
+
+    .content.is-map-post :global(.map-marker) {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--map-marker-size);
+      min-width: var(--map-marker-size);
+      height: var(--map-marker-size);
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.76);
+      border-radius: 999px;
+      background: rgba(194, 53, 58, 0.62);
+      color: transparent;
+      box-shadow:
+        0 0 0 4px var(--map-pin-soft),
+        0 5px 14px rgba(50, 29, 26, 0.18);
+      font: inherit;
+      font-size: 0;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0.78;
+      transform: translate(-50%, -50%);
+      transition:
+        background-color 140ms ease,
+        opacity 140ms ease,
+        box-shadow 140ms ease,
+        transform 140ms ease;
+    }
+
+    .content.is-map-post :global(.map-marker::after) {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      content: '';
+    }
+
+    .content.is-map-post :global(.map-marker:hover),
+    .content.is-map-post :global(.map-marker:focus-visible),
+    .content.is-map-post :global(.map-marker.is-active) {
+      background: rgba(143, 47, 37, 0.9);
+      box-shadow:
+        0 0 0 6px rgba(194, 53, 58, 0.18),
+        0 8px 20px rgba(50, 29, 26, 0.24);
+      opacity: 1;
+      outline: none;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    .content.is-map-post :global(.map-editor) {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 2;
+      width: min(420px, calc(100% - 24px));
+      padding: 10px 12px;
+      border: 1px solid rgba(20, 103, 216, 0.24);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      box-shadow: 0 12px 28px rgba(42, 88, 138, 0.16);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .content.is-map-post :global(.map-editor p) {
+      margin: 0 0 6px;
+      color: var(--muted);
+    }
+
+    .content.is-map-post :global(.map-editor pre) {
+      max-height: 132px;
+      margin: 0;
+      padding: 8px;
+      border: 1px solid rgba(220, 232, 245, 0.9);
+      border-radius: 6px;
+      background: #f7fbff;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow: auto;
+    }
+
+    .content.is-map-post :global(.map-editor code) {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 0.78rem;
+    }
+
+    :global(body.has-map-overlay) {
+      overflow: hidden;
+    }
+
+    .content.is-map-post :global(.map-detail-panel) {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      padding: 32px;
+      background: rgba(20, 32, 51, 0.52);
+      backdrop-filter: blur(10px);
+      outline: none;
+      overflow: auto;
+    }
+
+    .content.is-map-post :global(.map-detail-panel[hidden]) {
+      display: none;
+    }
+
+    .content.is-map-post :global(.map-detail) {
+      position: relative;
+      width: min(860px, 100%);
+      max-height: calc(100vh - 64px);
+      overflow: auto;
+      padding: 34px 36px 38px;
+      border: 1px solid rgba(220, 232, 245, 0.92);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.92)),
+        var(--map-panel);
+      box-shadow: 0 24px 70px rgba(16, 24, 39, 0.28);
+      outline: none;
+    }
+
+    .content.is-map-post :global(.map-detail[hidden]) {
+      display: none;
+    }
+
+    .content.is-map-post :global(.map-detail:focus-visible) {
+      box-shadow:
+        0 24px 70px rgba(16, 24, 39, 0.28),
+        0 0 0 3px rgba(20, 103, 216, 0.28);
+    }
+
+    .content.is-map-post :global(.map-detail h2),
+    .content.is-map-post :global(.map-detail h3) {
+      margin-top: 0;
+    }
+
+    .content.is-map-post :global(.map-detail img) {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 1em 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .content.is-map-post :global(.map-back) {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid rgba(20, 103, 216, 0.24);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--primary-strong);
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 760;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(42, 88, 138, 0.12);
+    }
+
+    .content.is-map-post :global(.map-back:hover),
+    .content.is-map-post :global(.map-back:focus-visible) {
+      border-color: rgba(20, 103, 216, 0.42);
+      background: rgba(20, 103, 216, 0.14);
+      outline: none;
+    }
+
+    .content.is-course-note {
       --note-strong-bg: #fff2cf;
       --note-strong-text: #6f4300;
       --note-inline-code-bg: #eef7f4;
@@ -431,49 +1039,15 @@ const toc = headings.map((heading) => {
       --note-quiz-strong: #312e81;
       --note-quiz-soft: rgba(67, 56, 202, 0.1);
       --note-quiz-line: rgba(67, 56, 202, 0.24);
-      margin-top: 36px;
-      padding-top: 26px;
-      border-top: 1px solid var(--line);
-      counter-reset: article-h1;
       line-height: 1.86;
-      overflow-wrap: break-word;
     }
 
-    .content :global(h1) {
-      counter-increment: article-h1;
-      counter-reset: article-h2;
-    }
-
-    .content :global(h2) {
-      counter-increment: article-h2;
-      counter-reset: article-h3;
-    }
-
-    .content :global(h3) {
-      counter-increment: article-h3;
-      counter-reset: article-h4;
-    }
-
-    .content :global(h4) {
-      counter-increment: article-h4;
-      counter-reset: article-h5;
-    }
-
-    .content :global(h5) {
-      counter-increment: article-h5;
-      counter-reset: article-h6;
-    }
-
-    .content :global(h6) {
-      counter-increment: article-h6;
-    }
-
-    .content :global(h1)::before,
-    .content :global(h2)::before,
-    .content :global(h3)::before,
-    .content :global(h4)::before,
-    .content :global(h5)::before,
-    .content :global(h6)::before {
+    .content.is-course-note :global(h2[data-note-number])::before,
+    .content.is-course-note :global(h3[data-note-number])::before,
+    .content.is-course-note :global(h4[data-note-number])::before,
+    .content.is-course-note :global(h5[data-note-number])::before,
+    .content.is-course-note :global(h6[data-note-number])::before {
+      content: attr(data-note-number);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -483,34 +1057,7 @@ const toc = headings.map((heading) => {
       font-weight: 820;
     }
 
-    .content :global(h1)::before {
-      content: counter(article-h1) '.';
-    }
-
-    .content :global(h2)::before {
-      content: counter(article-h1) '.' counter(article-h2);
-    }
-
-    .content :global(h3)::before {
-      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3);
-    }
-
-    .content :global(h4)::before {
-      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
-        counter(article-h4);
-    }
-
-    .content :global(h5)::before {
-      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
-        counter(article-h4) '.' counter(article-h5);
-    }
-
-    .content :global(h6)::before {
-      content: counter(article-h1) '.' counter(article-h2) '.' counter(article-h3) '.'
-        counter(article-h4) '.' counter(article-h5) '.' counter(article-h6);
-    }
-
-    .content :global(h2) {
+    .content.is-course-note :global(h2) {
       display: flex;
       align-items: flex-start;
       gap: 12px;
@@ -528,7 +1075,7 @@ const toc = headings.map((heading) => {
       letter-spacing: 0;
     }
 
-    .content :global(h1) {
+    .content.is-course-note :global(h1) {
       display: flex;
       align-items: flex-start;
       gap: 12px;
@@ -545,18 +1092,7 @@ const toc = headings.map((heading) => {
       letter-spacing: 0;
     }
 
-    .content :global(h1)::before {
-      min-width: 2.1em;
-      margin-top: 0.02em;
-      padding: 0.1em 0.38em;
-      border-radius: 7px;
-      background: var(--note-heading-strong);
-      color: white;
-      font-size: 0.74em;
-      line-height: 1.45;
-    }
-
-    .content :global(h2)::before {
+    .content.is-course-note :global(h2[data-note-number])::before {
       min-width: 2.5em;
       margin-top: 0.08em;
       padding: 0.08em 0.48em;
@@ -568,7 +1104,7 @@ const toc = headings.map((heading) => {
       line-height: 1.55;
     }
 
-    .content :global(h3) {
+    .content.is-course-note :global(h3) {
       display: flex;
       align-items: flex-start;
       gap: 8px;
@@ -588,7 +1124,7 @@ const toc = headings.map((heading) => {
       letter-spacing: 0;
     }
 
-    .content :global(h3)::before {
+    .content.is-course-note :global(h3[data-note-number])::before {
       margin-top: 0.05em;
       padding: 0.02em 0.44em;
       border-radius: 6px;
@@ -598,9 +1134,9 @@ const toc = headings.map((heading) => {
       line-height: 1.6;
     }
 
-    .content :global(h4),
-    .content :global(h5),
-    .content :global(h6) {
+    .content.is-course-note :global(h4),
+    .content.is-course-note :global(h5),
+    .content.is-course-note :global(h6) {
       display: flex;
       align-items: baseline;
       gap: 7px;
@@ -611,34 +1147,34 @@ const toc = headings.map((heading) => {
       letter-spacing: 0;
     }
 
-    .content :global(h4)::before,
-    .content :global(h5)::before,
-    .content :global(h6)::before {
+    .content.is-course-note :global(h4[data-note-number])::before,
+    .content.is-course-note :global(h5[data-note-number])::before,
+    .content.is-course-note :global(h6[data-note-number])::before {
       color: var(--muted);
       font-size: 0.82em;
     }
 
-    .content :global(p) {
+    .content.is-course-note :global(p) {
       margin: 1.1em 0;
     }
 
-    .content :global(ul),
-    .content :global(ol) {
+    .content.is-course-note :global(ul),
+    .content.is-course-note :global(ol) {
       margin: 1em 0;
       padding-left: 1.45em;
     }
 
-    .content :global(li) {
+    .content.is-course-note :global(li) {
       margin: 0.34em 0;
       padding-left: 0.1em;
     }
 
-    .content :global(li > ul),
-    .content :global(li > ol) {
+    .content.is-course-note :global(li > ul),
+    .content.is-course-note :global(li > ol) {
       margin: 0.36em 0 0.5em;
     }
 
-    .content :global(a) {
+    .content.is-course-note :global(a) {
       border-radius: 4px;
       background:
         linear-gradient(var(--note-link-bg), var(--note-link-bg)) 0 88% / 100% 0.42em
@@ -652,8 +1188,8 @@ const toc = headings.map((heading) => {
         color 140ms ease;
     }
 
-    .content :global(a:hover),
-    .content :global(a:focus-visible) {
+    .content.is-course-note :global(a:hover),
+    .content.is-course-note :global(a:focus-visible) {
       background:
         linear-gradient(var(--note-link-hover-bg), var(--note-link-hover-bg)) 0 88% / 100%
           0.86em no-repeat;
@@ -661,7 +1197,7 @@ const toc = headings.map((heading) => {
       outline: none;
     }
 
-    .content :global(strong) {
+    .content.is-course-note :global(strong) {
       padding: 0.08em 0.26em;
       border-radius: 5px;
       background: linear-gradient(180deg, transparent 18%, var(--note-strong-bg) 18%);
@@ -671,7 +1207,7 @@ const toc = headings.map((heading) => {
       -webkit-box-decoration-break: clone;
     }
 
-    .content :global(code) {
+    .content.is-course-note :global(code) {
       padding: 0.12em 0.42em;
       border: 1px solid var(--note-inline-code-border);
       border-radius: 6px;
@@ -685,7 +1221,7 @@ const toc = headings.map((heading) => {
       word-break: break-word;
     }
 
-    .content :global(.code-frame) {
+    .content.is-course-note :global(.code-frame) {
       margin: 1.25em 0;
       border: 1px solid var(--note-code-line);
       border-radius: 8px;
@@ -696,7 +1232,7 @@ const toc = headings.map((heading) => {
       overflow: hidden;
     }
 
-    .content :global(.code-toolbar) {
+    .content.is-course-note :global(.code-toolbar) {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -707,7 +1243,7 @@ const toc = headings.map((heading) => {
       background: rgba(17, 24, 39, 0.78);
     }
 
-    .content :global(.code-language) {
+    .content.is-course-note :global(.code-language) {
       color: var(--note-code-accent);
       font-size: 0.76rem;
       font-weight: 820;
@@ -715,7 +1251,7 @@ const toc = headings.map((heading) => {
       line-height: 1;
     }
 
-    .content :global(.code-copy) {
+    .content.is-course-note :global(.code-copy) {
       min-height: 30px;
       padding: 0 11px;
       border: 1px solid rgba(255, 209, 102, 0.34);
@@ -729,22 +1265,22 @@ const toc = headings.map((heading) => {
       cursor: pointer;
     }
 
-    .content :global(.code-copy:hover),
-    .content :global(.code-copy:focus-visible) {
+    .content.is-course-note :global(.code-copy:hover),
+    .content.is-course-note :global(.code-copy:focus-visible) {
       border-color: rgba(255, 209, 102, 0.68);
       background: rgba(255, 209, 102, 0.18);
       color: white;
       outline: none;
     }
 
-    .content :global(pre) {
+    .content.is-course-note :global(pre) {
       margin: 0;
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
     }
 
-    .content :global(pre code) {
+    .content.is-course-note :global(pre code) {
       display: block;
       min-width: max-content;
       padding: 14px 0;
@@ -760,7 +1296,7 @@ const toc = headings.map((heading) => {
       word-break: normal;
     }
 
-    .content :global(.code-line) {
+    .content.is-course-note :global(.code-line) {
       display: grid;
       grid-template-columns: 42px max-content;
       align-items: start;
@@ -769,7 +1305,7 @@ const toc = headings.map((heading) => {
       line-height: inherit;
     }
 
-    .content :global(.code-line)::before {
+    .content.is-course-note :global(.code-line)::before {
       content: counter(code-line);
       grid-column: 1;
       padding-right: 12px;
@@ -779,26 +1315,26 @@ const toc = headings.map((heading) => {
       user-select: none;
     }
 
-    .content :global(.code-line-content) {
+    .content.is-course-note :global(.code-line-content) {
       grid-column: 2;
       min-width: 0;
       line-height: inherit;
     }
 
-    .content :global(.code-line-content span) {
+    .content.is-course-note :global(.code-line-content span) {
       line-height: inherit;
     }
 
-    .content :global(pre code) {
+    .content.is-course-note :global(pre code) {
       counter-reset: code-line;
     }
 
-    .content :global(.code-token-keyword) {
+    .content.is-course-note :global(.code-token-keyword) {
       color: var(--note-code-keyword);
       font-weight: 760;
     }
 
-    .content :global(table) {
+    .content.is-course-note :global(table) {
       display: block;
       width: max-content;
       max-width: 100%;
@@ -814,12 +1350,12 @@ const toc = headings.map((heading) => {
       -webkit-overflow-scrolling: touch;
     }
 
-    .content :global(thead) {
+    .content.is-course-note :global(thead) {
       background: var(--note-table-head);
     }
 
-    .content :global(th),
-    .content :global(td) {
+    .content.is-course-note :global(th),
+    .content.is-course-note :global(td) {
       min-width: 9rem;
       padding: 10px 12px;
       border-right: 1px solid var(--note-table-border);
@@ -829,7 +1365,7 @@ const toc = headings.map((heading) => {
       vertical-align: top;
     }
 
-    .content :global(th) {
+    .content.is-course-note :global(th) {
       border-right-color: var(--note-table-head-line);
       border-bottom-color: var(--note-table-head-line);
       background: var(--note-table-head);
@@ -838,24 +1374,24 @@ const toc = headings.map((heading) => {
       font-weight: 780;
     }
 
-    .content :global(td) {
+    .content.is-course-note :global(td) {
       background: var(--note-table-row);
       color: var(--text);
     }
 
-    .content :global(tbody tr:nth-child(even) td) {
+    .content.is-course-note :global(tbody tr:nth-child(even) td) {
       background: var(--note-table-row-alt);
     }
 
-    .content :global(tr > :last-child) {
+    .content.is-course-note :global(tr > :last-child) {
       border-right: 0;
     }
 
-    .content :global(tbody tr:last-child td) {
+    .content.is-course-note :global(tbody tr:last-child td) {
       border-bottom: 0;
     }
 
-    .content :global(img) {
+    .content.is-course-note :global(img) {
       display: block;
       max-width: 100%;
       height: auto;
@@ -867,7 +1403,7 @@ const toc = headings.map((heading) => {
       box-shadow: 0 14px 32px rgba(42, 88, 138, 0.12);
     }
 
-    .content :global(blockquote) {
+    .content.is-course-note :global(blockquote) {
       margin: 1.2em 0;
       padding: 2px 0 2px 16px;
       border-left: 4px solid var(--accent);
@@ -875,13 +1411,13 @@ const toc = headings.map((heading) => {
       background: linear-gradient(90deg, rgba(0, 167, 181, 0.08), transparent 72%);
     }
 
-    .content :global(hr) {
+    .content.is-course-note :global(hr) {
       margin: 2em 0;
       border: 0;
       border-top: 1px solid var(--line);
     }
 
-    .content :global(.katex-display) {
+    .content.is-course-note :global(.katex-display) {
       overflow-x: auto;
       overflow-y: hidden;
       padding: 8px 0;
@@ -1022,7 +1558,7 @@ const toc = headings.map((heading) => {
       color: var(--primary-strong);
     }
 
-    .content :global(.quiz-question) {
+    .content.is-course-note :global(.quiz-question) {
       position: relative;
       overflow: hidden;
       margin: 22px 0;
@@ -1035,7 +1571,7 @@ const toc = headings.map((heading) => {
       box-shadow: 0 16px 36px rgba(49, 46, 129, 0.13);
     }
 
-    .content :global(.quiz-question::before) {
+    .content.is-course-note :global(.quiz-question::before) {
       content: '';
       position: absolute;
       inset: 0 0 auto;
@@ -1043,7 +1579,7 @@ const toc = headings.map((heading) => {
       background: linear-gradient(90deg, var(--note-quiz-strong), var(--note-quiz));
     }
 
-    .content :global(.quiz-prompt) {
+    .content.is-course-note :global(.quiz-prompt) {
       display: flex;
       align-items: flex-start;
       gap: 10px;
@@ -1054,7 +1590,7 @@ const toc = headings.map((heading) => {
       line-height: 1.65;
     }
 
-    .content :global(.quiz-number) {
+    .content.is-course-note :global(.quiz-number) {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1070,7 +1606,7 @@ const toc = headings.map((heading) => {
       white-space: nowrap;
     }
 
-    .content :global(.quiz-prompt strong) {
+    .content.is-course-note :global(.quiz-prompt strong) {
       display: block;
       min-width: 0;
       padding: 0;
@@ -1083,7 +1619,7 @@ const toc = headings.map((heading) => {
       -webkit-box-decoration-break: slice;
     }
 
-    .content :global(.quiz-question code) {
+    .content.is-course-note :global(.quiz-question code) {
       padding: 0.12em 0.42em;
       border: 1px solid var(--note-inline-code-border);
       border-radius: 6px;
@@ -1093,13 +1629,13 @@ const toc = headings.map((heading) => {
       line-height: 1.5;
     }
 
-    .content :global(.quiz-question > p:has(label)) {
+    .content.is-course-note :global(.quiz-question > p:has(label)) {
       display: grid;
       gap: 10px;
       margin: 0;
     }
 
-    .content :global(.quiz-question label) {
+    .content.is-course-note :global(.quiz-question label) {
       display: block;
       position: relative;
       min-width: 0;
@@ -1114,28 +1650,28 @@ const toc = headings.map((heading) => {
       box-shadow: 0 4px 14px rgba(42, 88, 138, 0.04);
     }
 
-    .content :global(.quiz-question label:hover) {
+    .content.is-course-note :global(.quiz-question label:hover) {
       border-color: rgba(67, 56, 202, 0.4);
       background: rgba(67, 56, 202, 0.07);
     }
 
-    .content :global(.quiz-question label:has(input:disabled)) {
+    .content.is-course-note :global(.quiz-question label:has(input:disabled)) {
       cursor: default;
     }
 
-    .content :global(.quiz-question label.is-correct-option) {
+    .content.is-course-note :global(.quiz-question label.is-correct-option) {
       border-color: rgba(0, 167, 181, 0.55);
       background: rgba(0, 167, 181, 0.12);
       color: #005f68;
     }
 
-    .content :global(.quiz-question label.is-wrong-option) {
+    .content.is-course-note :global(.quiz-question label.is-wrong-option) {
       border-color: rgba(214, 69, 65, 0.42);
       background: rgba(214, 69, 65, 0.1);
       color: #9b2f2b;
     }
 
-    .content :global(.quiz-question input[type='radio']) {
+    .content.is-course-note :global(.quiz-question input[type='radio']) {
       position: absolute;
       top: 18px;
       left: 14px;
@@ -1145,18 +1681,18 @@ const toc = headings.map((heading) => {
       accent-color: var(--note-quiz);
     }
 
-    .content :global(.quiz-actions) {
+    .content.is-course-note :global(.quiz-actions) {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 16px;
     }
 
-    .content :global(.quiz-actions[hidden]) {
+    .content.is-course-note :global(.quiz-actions[hidden]) {
       display: none;
     }
 
-    .content :global(.quiz-actions button) {
+    .content.is-course-note :global(.quiz-actions button) {
       min-height: 40px;
       padding: 0 14px;
       border: 1px solid var(--line);
@@ -1169,20 +1705,20 @@ const toc = headings.map((heading) => {
       box-shadow: 0 8px 20px rgba(42, 88, 138, 0.08);
     }
 
-    .content :global(.quiz-actions .submit-answer) {
+    .content.is-course-note :global(.quiz-actions .submit-answer) {
       border-color: transparent;
       background: var(--note-quiz);
       color: white;
     }
 
-    .content :global(.quiz-actions button:hover),
-    .content :global(.quiz-actions button:focus-visible) {
+    .content.is-course-note :global(.quiz-actions button:hover),
+    .content.is-course-note :global(.quiz-actions button:focus-visible) {
       border-color: rgba(67, 56, 202, 0.35);
       outline: none;
       transform: translateY(-1px);
     }
 
-    .content :global(.quiz-result) {
+    .content.is-course-note :global(.quiz-result) {
       margin: 14px 0 0;
       padding: 10px 12px;
       border-radius: 8px;
@@ -1191,22 +1727,22 @@ const toc = headings.map((heading) => {
       font-weight: 760;
     }
 
-    .content :global(.quiz-result.is-correct) {
+    .content.is-course-note :global(.quiz-result.is-correct) {
       background: rgba(0, 167, 181, 0.12);
       color: #00727c;
     }
 
-    .content :global(.quiz-result.is-wrong) {
+    .content.is-course-note :global(.quiz-result.is-wrong) {
       background: rgba(255, 180, 84, 0.18);
       color: #8f5200;
     }
 
-    .content :global(.quiz-result.is-warning) {
+    .content.is-course-note :global(.quiz-result.is-warning) {
       background: rgba(255, 180, 84, 0.14);
       color: #8f5200;
     }
 
-    .content :global(.quiz-explanation) {
+    .content.is-course-note :global(.quiz-explanation) {
       margin: 10px 0 0;
       padding: 12px 14px;
       border-left: 3px solid var(--accent);
@@ -1216,7 +1752,7 @@ const toc = headings.map((heading) => {
       line-height: 1.75;
     }
 
-    .content :global(pre:has(code.language-html)) {
+    .content.is-course-note :global(pre:has(code.language-html)) {
       display: none;
     }
 
@@ -1227,7 +1763,7 @@ const toc = headings.map((heading) => {
     }
 
     @media (min-width: 1520px) {
-      .article-layout {
+      .article-layout.has-course-note-aside {
         padding-left: 260px;
       }
     }
@@ -1237,27 +1773,49 @@ const toc = headings.map((heading) => {
         padding-top: 24px;
       }
 
-      .content :global(h1) {
+      .content.is-map-post :global(.map-detail-panel) {
+        padding: 14px;
+      }
+
+      .content.is-map-post :global(.map-widget[data-map-layout='wide']) {
+        width: 100%;
+        margin-right: 0;
+        margin-left: 0;
+      }
+
+      .content.is-map-post :global(.map-detail) {
+        max-height: calc(100vh - 28px);
+        padding: 28px 18px 24px;
+      }
+
+      .content.is-map-post :global(.map-back) {
+        top: 10px;
+        right: 10px;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+      }
+
+      .content.is-course-note :global(h1) {
         gap: 9px;
         padding: 14px 12px;
         font-size: 1.46rem;
       }
 
-      .content :global(h2) {
+      .content.is-course-note :global(h2) {
         gap: 8px;
         padding: 13px 12px;
         font-size: 1.3rem;
       }
 
-      .content :global(h3) {
+      .content.is-course-note :global(h3) {
         width: auto;
         padding: 8px 10px;
         font-size: 1.14rem;
       }
 
-      .content :global(h1)::before,
-      .content :global(h2)::before,
-      .content :global(h3)::before {
+      .content.is-course-note :global(h2[data-note-number])::before,
+      .content.is-course-note :global(h3[data-note-number])::before {
         min-width: auto;
         white-space: nowrap;
       }
@@ -1266,65 +1824,65 @@ const toc = headings.map((heading) => {
         grid-template-columns: 1fr;
       }
 
-      .content :global(.quiz-actions),
-      .content :global(.quiz-actions button) {
+      .content.is-course-note :global(.quiz-actions),
+      .content.is-course-note :global(.quiz-actions button) {
         width: 100%;
       }
 
-      .content :global(.quiz-question) {
+      .content.is-course-note :global(.quiz-question) {
         padding: 20px 16px 18px;
       }
 
-      .content :global(.quiz-prompt) {
+      .content.is-course-note :global(.quiz-prompt) {
         gap: 8px;
       }
 
-      .content :global(.quiz-number) {
+      .content.is-course-note :global(.quiz-number) {
         min-width: 2.1em;
       }
 
-      .content :global(.quiz-question label) {
+      .content.is-course-note :global(.quiz-question label) {
         padding: 11px 12px 11px 36px;
         font-size: 0.96rem;
       }
 
-      .content :global(.quiz-question input[type='radio']) {
+      .content.is-course-note :global(.quiz-question input[type='radio']) {
         top: 17px;
         left: 12px;
       }
 
-      .content :global(.code-toolbar) {
+      .content.is-course-note :global(.code-toolbar) {
         min-height: 38px;
         padding: 7px 8px 7px 11px;
       }
 
-      .content :global(.code-language) {
+      .content.is-course-note :global(.code-language) {
         font-size: 0.7rem;
       }
 
-      .content :global(.code-copy) {
+      .content.is-course-note :global(.code-copy) {
         min-height: 28px;
         padding: 0 9px;
         font-size: 0.74rem;
       }
 
-      .content :global(pre code) {
+      .content.is-course-note :global(pre code) {
         padding: 12px 0;
         font-size: 0.84rem;
       }
 
-      .content :global(.code-line) {
+      .content.is-course-note :global(.code-line) {
         grid-template-columns: 34px max-content;
         padding-right: 14px;
       }
 
-      .content :global(th),
-      .content :global(td) {
+      .content.is-course-note :global(th),
+      .content.is-course-note :global(td) {
         min-width: 8rem;
         padding: 9px 10px;
       }
 
-      .content :global(img) {
+      .content.is-course-note :global(img) {
         padding: 7px;
       }
     }

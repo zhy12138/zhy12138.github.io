@@ -1,0 +1,139 @@
+---
+import { getTagClass, getTagHref, type TagSummary } from '../lib/blog';
+
+type Props = {
+  tags: TagSummary[];
+  currentTag?: string;
+};
+
+const { tags, currentTag } = Astro.props;
+---
+
+{
+  tags.length > 0 && (
+    <nav class="tag-cloud" aria-label="所有标签">
+      <p>Tags</p>
+      <ul>
+        {tags.map(({ tag, count }) => (
+          <li>
+            <a
+              class:list={['tag-cloud-link', getTagClass(tag)]}
+              href={getTagHref(tag)}
+              aria-current={tag === currentTag ? 'page' : undefined}
+            >
+              <span>{tag}</span>
+              <strong>{count}</strong>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .tag-cloud {
+    padding: 14px;
+    border: 1px solid rgba(220, 232, 245, 0.82);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.58);
+  }
+
+  .tag-cloud p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .tag-cloud ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-cloud-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    width: 100%;
+    min-height: 30px;
+    padding: 0 9px 0 10px;
+    border: 1px solid rgba(20, 103, 216, 0.18);
+    border-radius: 8px;
+    background: rgba(20, 103, 216, 0.08);
+    color: var(--primary-strong);
+    font-size: 0.86rem;
+    font-weight: 760;
+    line-height: 1;
+  }
+
+  .tag-cloud-link strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.55em;
+    height: 1.55em;
+    padding: 0 0.38em;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: inherit;
+    font-size: 0.76em;
+    line-height: 1;
+  }
+
+  .tag-cloud-link:hover,
+  .tag-cloud-link:focus-visible {
+    border-color: rgba(20, 103, 216, 0.36);
+    background: rgba(20, 103, 216, 0.14);
+    outline: none;
+  }
+
+  .tag-cloud-link[aria-current='page'] {
+    border-color: rgba(20, 103, 216, 0.58);
+    background: rgba(20, 103, 216, 0.18);
+    color: var(--primary-strong);
+    font-weight: 860;
+    box-shadow:
+      inset 3px 0 0 var(--primary),
+      0 8px 18px rgba(42, 88, 138, 0.1);
+  }
+
+  .tag-cloud-link[aria-current='page'] strong {
+    background: var(--primary-strong);
+    color: white;
+  }
+
+  .tag-cloud-link.is-course-note-tag {
+    border-color: rgba(0, 167, 181, 0.28);
+    background: rgba(0, 167, 181, 0.1);
+    color: #075e64;
+  }
+
+  .tag-cloud-link.is-map-tag {
+    border-color: rgba(191, 91, 37, 0.3);
+    background: rgba(255, 180, 84, 0.16);
+    color: #8f5200;
+  }
+
+  @media (max-width: 640px) {
+    .tag-cloud {
+      padding: 14px;
+    }
+
+    .tag-cloud ul {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .tag-cloud-link {
+      width: auto;
+    }
+  }
+</style>
