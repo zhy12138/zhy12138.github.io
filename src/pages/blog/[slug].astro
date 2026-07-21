@@ -1,7 +1,12 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getTagClass, getTagHref } from '../../lib/blog';
+import {
+  getAdjacentPostsBySharedNonFunctionalTag,
+  getSlug,
+  getTagClass,
+  getTagHref,
+} from '../../lib/blog';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -15,6 +20,8 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
+const publishedPosts = (await getCollection('blog')).filter((post) => !post.data.draft);
+const adjacentPosts = getAdjacentPostsBySharedNonFunctionalTag(post, publishedPosts);
 const isCourseNote = post.data.tags.includes('课程笔记');
 const isColumn = post.data.tags.includes('专栏');
 const isMapPost = post.data.tags.includes('地图');
@@ -87,6 +94,34 @@ const toc = headings.map((heading) => {
       >
         <Content />
       </div>
+      {
+        (adjacentPosts.previous || adjacentPosts.next) && (
+          <nav class="article-neighbor-nav" aria-label="相同标签文章导航">
+            {adjacentPosts.previous ? (
+              <a class="article-neighbor is-previous" href={`/blog/${getSlug(adjacentPosts.previous.id)}/`}>
+                <span>上一篇</span>
+                <strong>{adjacentPosts.previous.data.title}</strong>
+                <time datetime={adjacentPosts.previous.data.pubDate.toISOString()}>
+                  {adjacentPosts.previous.data.pubDate.toLocaleDateString('zh-CN')}
+                </time>
+              </a>
+            ) : (
+              <span class="article-neighbor is-empty" aria-hidden="true" />
+            )}
+            {adjacentPosts.next ? (
+              <a class="article-neighbor is-next" href={`/blog/${getSlug(adjacentPosts.next.id)}/`}>
+                <span>下一篇</span>
+                <strong>{adjacentPosts.next.data.title}</strong>
+                <time datetime={adjacentPosts.next.data.pubDate.toISOString()}>
+                  {adjacentPosts.next.data.pubDate.toLocaleDateString('zh-CN')}
+                </time>
+              </a>
+            ) : (
+              <span class="article-neighbor is-empty" aria-hidden="true" />
+            )}
+          </nav>
+        )
+      }
     </article>
 
     {
@@ -780,6 +815,64 @@ const toc = headings.map((heading) => {
       border-top: 1px solid var(--line);
       line-height: 1.82;
       overflow-wrap: break-word;
+    }
+
+    .article-neighbor-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 42px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .article-neighbor {
+      display: grid;
+      gap: 8px;
+      min-height: 128px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: 0 12px 30px rgba(42, 88, 138, 0.08);
+    }
+
+    .article-neighbor:hover,
+    .article-neighbor:focus-visible {
+      border-color: rgba(20, 103, 216, 0.36);
+      background: rgba(255, 255, 255, 0.94);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .article-neighbor span {
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .article-neighbor strong {
+      align-self: start;
+      color: var(--text);
+      font-size: 1.04rem;
+      line-height: 1.45;
+      letter-spacing: 0;
+    }
+
+    .article-neighbor time {
+      align-self: end;
+      margin-top: 4px;
+      font-size: 0.88rem;
+    }
+
+    .article-neighbor.is-next {
+      text-align: right;
+    }
+
+    .article-neighbor.is-empty {
+      visibility: hidden;
     }
 
     .content :global(p) {
@@ -1950,6 +2043,23 @@ const toc = headings.map((heading) => {
     @media (max-width: 640px) {
       .article-layout {
         padding-top: 24px;
+      }
+
+      .article-neighbor-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .article-neighbor {
+        min-height: 112px;
+        padding: 16px;
+      }
+
+      .article-neighbor.is-next {
+        text-align: left;
+      }
+
+      .article-neighbor.is-empty {
+        display: none;
       }
 
       .back-to-top {

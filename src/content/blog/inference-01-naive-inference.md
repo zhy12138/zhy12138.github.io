@@ -2,7 +2,7 @@
 title: "从最简单的 LLM server 开始"
 description: "LLM 推理引擎入门第一篇，从最朴素的生成服务器出发，梳理自回归生成、KV Cache、Prefill/Decode 阶段和一次完整文本生成流程。"
 pubDate: 2026-07-21
-draft: false
+draft: true
 tags: ["专栏", "LLM 推理引擎"]
 ---
 
