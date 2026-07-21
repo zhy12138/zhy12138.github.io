@@ -16,14 +16,21 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
 const isCourseNote = post.data.tags.includes('课程笔记');
+const isColumn = post.data.tags.includes('专栏');
 const isMapPost = post.data.tags.includes('地图');
+const hasArticleToc = isCourseNote || isColumn;
 const courseNoteNumberedSection = '知识点整理';
-const headingCounters = [0, 0, 0, 0, 0];
+const headingCounters = [0, 0, 0, 0, 0, 0];
 let isInCourseNoteNumberedSection = false;
 const toc = headings.map((heading) => {
   let number = '';
 
-  if (isCourseNote) {
+  if (isColumn) {
+    const index = heading.depth - 1;
+    headingCounters[index] += 1;
+    headingCounters.fill(0, index + 1);
+    number = headingCounters.slice(0, index + 1).filter(Boolean).join('.');
+  } else if (isCourseNote) {
     if (heading.depth === 1) {
       isInCourseNoteNumberedSection = heading.text === courseNoteNumberedSection;
       headingCounters.fill(0);
@@ -43,7 +50,7 @@ const toc = headings.map((heading) => {
 ---
 
 <BaseLayout title={`${post.data.title} | zhy12138`} description={post.data.description}>
-  <div class:list={['article-layout', { 'has-course-note-aside': isCourseNote }]}>
+  <div class:list={['article-layout', { 'has-article-aside': hasArticleToc }]}>
     <article class:list={['article', { 'is-course-note': isCourseNote }]}>
       <header>
         <a class="back" href="/blog/">返回 Blog</a>
@@ -67,7 +74,15 @@ const toc = headings.map((heading) => {
         {post.data.description && <p>{post.data.description}</p>}
       </header>
       <div
-        class:list={['content', { 'is-course-note': isCourseNote, 'is-map-post': isMapPost }]}
+        class:list={[
+          'content',
+          {
+            'is-course-note': isCourseNote,
+            'is-column': isColumn,
+            'has-article-toc': hasArticleToc,
+            'is-map-post': isMapPost,
+          },
+        ]}
         id="article-content"
       >
         <Content />
@@ -75,7 +90,7 @@ const toc = headings.map((heading) => {
     </article>
 
     {
-      isCourseNote && (
+      hasArticleToc && (
         <aside class="article-aside" aria-label="文章目录">
           <div class="reading-card">
             <div class="progress-head">
@@ -145,9 +160,11 @@ const toc = headings.map((heading) => {
       window.addEventListener('resize', scheduleBackToTopUpdate);
     }
 
-    const courseNoteContent = document.querySelector<HTMLElement>('.content.is-course-note');
-    if (courseNoteContent) {
-      const courseNoteArticle = courseNoteContent;
+    const articleTocContent = document.querySelector<HTMLElement>('.content.has-article-toc');
+    if (articleTocContent) {
+      const articleTocArticle = articleTocContent;
+      const isCourseNoteArticle = articleTocArticle.classList.contains('is-course-note');
+      const isColumnArticle = articleTocArticle.classList.contains('is-column');
       const progressBar = document.querySelector<HTMLElement>('#reading-progress');
       const progressPercent = document.querySelector<HTMLElement>('#reading-percent');
       const tocLinks = Array.from(document.querySelectorAll('.toc a'));
@@ -165,7 +182,7 @@ const toc = headings.map((heading) => {
       function updateArticleState() {
         if (!progressBar || !progressPercent) return;
 
-        const rect = courseNoteArticle.getBoundingClientRect();
+        const rect = articleTocArticle.getBoundingClientRect();
         const readable = Math.max(1, rect.height - window.innerHeight);
         const progress = Math.min(1, Math.max(0, -rect.top / readable));
         const percent = Math.round(progress * 100);
@@ -201,24 +218,32 @@ const toc = headings.map((heading) => {
         });
       }
 
-      function annotateCourseNoteHeadings() {
+      function annotateArticleHeadings() {
         const numberedSectionTitle = '知识点整理';
-        const counters = [0, 0, 0, 0, 0];
+        const counters = [0, 0, 0, 0, 0, 0];
         let isInNumberedSection = false;
 
-        courseNoteArticle
+        articleTocArticle
           .querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')
           .forEach((heading) => {
             delete heading.dataset.noteNumber;
 
             const depth = Number(heading.tagName.slice(1));
-            if (depth === 1) {
+            if (isColumnArticle) {
+              const index = depth - 1;
+              counters[index] += 1;
+              counters.fill(0, index + 1);
+              heading.dataset.noteNumber = counters.slice(0, index + 1).filter(Boolean).join('.');
+              return;
+            }
+
+            if (isCourseNoteArticle && depth === 1) {
               isInNumberedSection = heading.textContent?.trim() === numberedSectionTitle;
               counters.fill(0);
               return;
             }
 
-            if (!isInNumberedSection) return;
+            if (!isCourseNoteArticle || !isInNumberedSection) return;
 
             const index = depth - 2;
             counters[index] += 1;
@@ -231,7 +256,7 @@ const toc = headings.map((heading) => {
         if (!('renderMathInElement' in window)) return;
         const renderMath = window.renderMathInElement as typeof import('katex/contrib/auto-render');
 
-        courseNoteArticle.querySelectorAll<HTMLElement>('.quiz-question').forEach((element) => {
+        articleTocArticle.querySelectorAll<HTMLElement>('.quiz-question').forEach((element) => {
           if (element.dataset.mathRendered === 'true') return;
           renderMath(element, {
             delimiters: [
@@ -332,7 +357,7 @@ const toc = headings.map((heading) => {
     }
 
       function enhanceCodeBlocks() {
-        courseNoteArticle.querySelectorAll<HTMLElement>('pre > code').forEach((code) => {
+        articleTocArticle.querySelectorAll<HTMLElement>('pre > code').forEach((code) => {
         const pre = code.parentElement;
         if (!(pre instanceof HTMLPreElement)) return;
         if (pre.closest('.code-frame')) return;
@@ -400,7 +425,8 @@ const toc = headings.map((heading) => {
       });
     }
 
-      courseNoteArticle.querySelectorAll('.quiz-question').forEach((question) => {
+      if (isCourseNoteArticle) {
+        articleTocArticle.querySelectorAll('.quiz-question').forEach((question) => {
       const answer = question.getAttribute('data-answer');
       const submitButton = question.querySelector('.submit-answer');
       const showButton = question.querySelector('.show-answer');
@@ -441,15 +467,18 @@ const toc = headings.map((heading) => {
         explanation.hidden = false;
         lockQuiz(question);
       });
-    });
+        });
+      }
 
-      enhanceCodeBlocks();
-      annotateCourseNoteHeadings();
+      if (isCourseNoteArticle) enhanceCodeBlocks();
+      annotateArticleHeadings();
       scheduleArticleStateUpdate();
-      if (document.readyState === 'complete') {
-        renderQuizMath();
-      } else {
-        window.addEventListener('load', renderQuizMath, { once: true });
+      if (isCourseNoteArticle) {
+        if (document.readyState === 'complete') {
+          renderQuizMath();
+        } else {
+          window.addEventListener('load', renderQuizMath, { once: true });
+        }
       }
       window.addEventListener('load', scheduleArticleStateUpdate, { once: true });
       window.addEventListener('scroll', scheduleArticleStateUpdate, { passive: true });
@@ -725,6 +754,12 @@ const toc = headings.map((heading) => {
       color: #8f5200;
     }
 
+    .article-tag.is-column-tag {
+      border-color: rgba(102, 84, 191, 0.28);
+      background: rgba(102, 84, 191, 0.1);
+      color: #493b88;
+    }
+
     h1 {
       margin: 12px 0 0;
       font-size: clamp(2.1rem, 7vw, 4rem);
@@ -783,6 +818,40 @@ const toc = headings.map((heading) => {
       margin: 1.75em 0 0.7em;
       line-height: 1.32;
       letter-spacing: 0;
+    }
+
+    .content.is-column :global(h1),
+    .content.is-column :global(h2),
+    .content.is-column :global(h3),
+    .content.is-column :global(h4),
+    .content.is-column :global(h5),
+    .content.is-column :global(h6) {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .content.is-column :global([data-note-number])::before {
+      content: attr(data-note-number);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      min-width: 2.2em;
+      padding: 0.06em 0.42em;
+      border-radius: 7px;
+      background: rgba(102, 84, 191, 0.12);
+      color: #493b88;
+      font-size: 0.76em;
+      font-variant-numeric: tabular-nums;
+      font-weight: 820;
+      line-height: 1.55;
+    }
+
+    .content.is-column :global(h1[data-note-number])::before,
+    .content.is-column :global(h2[data-note-number])::before {
+      background: rgba(102, 84, 191, 0.18);
+      color: #3c3176;
     }
 
     .content :global(code) {
@@ -1851,7 +1920,7 @@ const toc = headings.map((heading) => {
     }
 
     @media (min-width: 1520px) {
-      .article-layout.has-course-note-aside {
+      .article-layout.has-article-aside {
         padding-left: 260px;
       }
     }
@@ -1908,7 +1977,8 @@ const toc = headings.map((heading) => {
       }
 
       .content.is-course-note :global(h2[data-note-number])::before,
-      .content.is-course-note :global(h3[data-note-number])::before {
+      .content.is-course-note :global(h3[data-note-number])::before,
+      .content.is-column :global([data-note-number])::before {
         min-width: auto;
         white-space: nowrap;
       }

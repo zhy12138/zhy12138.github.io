@@ -6,7 +6,7 @@ export type TagSummary = {
   count: number;
 };
 
-const functionalTags = new Set(['课程笔记', '地图']);
+const functionalTags = new Set(['课程笔记', '地图', '专栏']);
 
 export function getSlug(id: string) {
   return id.replace(/\.mdx?$/, '');
@@ -32,6 +32,7 @@ export function getTagClass(tag: string) {
   return {
     'is-course-note-tag': tag === '课程笔记',
     'is-map-tag': tag === '地图',
+    'is-column-tag': tag === '专栏',
   };
 }
 
