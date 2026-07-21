@@ -831,6 +831,28 @@ const toc = headings.map((heading) => {
       gap: 10px;
     }
 
+    .content.is-column :global(strong) {
+      padding: 0.08em 0.26em;
+      border-radius: 5px;
+      background: linear-gradient(180deg, transparent 18%, #fff2cf 18%);
+      color: #6f4300;
+      font-weight: 760;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .content.is-column :global(em) {
+      padding: 0.08em 0.3em;
+      border: 1px solid rgba(6, 78, 59, 0.26);
+      border-radius: 6px;
+      background: #ecfdf5;
+      color: #064e3b;
+      font-style: normal;
+      font-weight: 680;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
     .content.is-column :global([data-note-number])::before {
       content: attr(data-note-number);
       display: inline-flex;
