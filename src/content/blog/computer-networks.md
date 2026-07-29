@@ -1,5 +1,5 @@
 ---
-title: "计网"
+title: "计算机网络"
 description: "计算机网络笔记蒸馏，覆盖网络基础、应用层、传输层、网络层、链路层、无线网络和移动性。"
 pubDate: 2026-07-19
 draft: false
@@ -130,6 +130,17 @@ Internet 的实现主线：
   <p class="quiz-explanation" hidden>正确答案：B。<br />解析：同层实体通过协议对话，上层实体通过接口调用下层实体提供的服务；这是分层架构中“水平协议、垂直接口”的核心。</p>
 </div>
 
+<div class="quiz-question" data-answer="A">
+  <p><strong>1.1. 一条路径中最慢链路速率为 $R_{min}$，没有其他流量竞争时，长时间端到端吞吐量主要受什么限制？</strong></p>
+  <label><input type="radio" name="cnq6" value="A" /> A. 瓶颈链路 $R_{min}$</label>
+  <label><input type="radio" name="cnq6" value="B" /> B. 最快链路速率之和</label>
+  <label><input type="radio" name="cnq6" value="C" /> C. 路由器数量的平方</label>
+  <label><input type="radio" name="cnq6" value="D" /> D. DNS 记录的 TTL</label>
+  <div class="quiz-actions"><button type="button" class="submit-answer">提交答案</button><button type="button" class="show-answer">显示答案</button></div>
+  <p class="quiz-result" hidden></p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：串联路径的持续发送能力由可用速率最低的一段限制，其他更快链路无法提高瓶颈输出。</p>
+</div>
+
 ## 应用层
 
 ### 应用层实体、架构和传输服务
@@ -153,6 +164,8 @@ Internet 的实现主线：
 Web 由 HTTP 客户端和服务器、Web 对象、URL、HTTP 协议组成。HTTP 通常运行在 TCP 上，默认端口 80。HTTP 是无状态协议，服务器端不保存之前请求状态。
 
 HTTP/1.0 默认非持久连接，获取每个对象都要建立、请求/响应、关闭连接。HTTP/1.1 默认持久连接，可复用 TCP 连接，减少慢启动和 RTT 开销；pipeline 支持流水线但需要按序响应。HTTP/2 请求/响应允许交错，可设置优先级和服务器推送。HTTP/3 主要换成 UDP + QUIC。
+
+非持久 HTTP 获取一个对象通常至少经历建立 TCP 的 1 RTT、发送请求到收到首字节的 1 RTT，再加对象传输时间；页面含多个对象时，这些开销会重复。持久连接复用握手状态，HTTP/2 用多路复用缓解应用层队头阻塞，HTTP/3 则让不同 QUIC 流之间不再因单个传输层丢包全部停顿。
 
 ![HTTP 请求报文格式](/blog/computer-networks/http-request-format.png)
 
@@ -196,6 +209,8 @@ DNS 使用层次化、基于域的命名模式和分布式数据库，避免单�
 
 - 主机到本地 DNS 通常使用递归查询。
 - DNS 服务器向上层服务器通常使用迭代查询。
+
+本地 DNS 无缓存时会沿根、顶级域和权威服务器逐级定位。缓存记录只在 TTL 内有效，能降低解析时延和上层服务器负载，但也意味着地址变更不会立刻传播。新增区域还需要在父区域登记权威服务器；若权威服务器名称位于该子域中，父区域需附带其地址作为胶水记录，避免循环依赖。
 
 ![DNS 查询流程](/blog/computer-networks/dns-query-flow.png)
 
@@ -243,6 +258,17 @@ Telnet 通过 NVT 屏蔽异构终端差异，默认 TCP 23。FTP 使用控制连
   </div>
   <p class="quiz-result" hidden></p>
   <p class="quiz-explanation" hidden>正确答案：C。<br />解析：DNS 从 hosts 文件演化为层次化分布式数据库，核心原因是名称规模变大后需要避免集中管理和单点故障，并支撑海量查询。</p>
+</div>
+
+<div class="quiz-question" data-answer="D">
+  <p><strong>2.1. HTTP/1.1 持久连接相对逐对象非持久连接的主要收益是什么？</strong></p>
+  <label><input type="radio" name="cnq7" value="A" /> A. HTTP 因此变成有状态协议</label>
+  <label><input type="radio" name="cnq7" value="B" /> B. 每个对象都必须重新建立连接</label>
+  <label><input type="radio" name="cnq7" value="C" /> C. 不再需要服务器响应</label>
+  <label><input type="radio" name="cnq7" value="D" /> D. 多个对象复用 TCP 连接，减少重复握手与 RTT 开销</label>
+  <div class="quiz-actions"><button type="button" class="submit-answer">提交答案</button><button type="button" class="show-answer">显示答案</button></div>
+  <p class="quiz-result" hidden></p>
+  <p class="quiz-explanation" hidden>正确答案：D。<br />解析：连接复用避免为每个对象支付新的 TCP 建连和慢启动成本，但 HTTP 的无状态语义并未因此改变。</p>
 </div>
 
 ## 传输层
@@ -431,6 +457,17 @@ $$
   <p class="quiz-explanation" hidden>正确答案：A。<br />解析：流量控制依据接收窗口约束未确认字节数，目标是不淹没接收端；拥塞控制依据 cwnd 调整发送速率，目标是不超过网络承载能力。</p>
 </div>
 
+<div class="quiz-question" data-answer="B">
+  <p><strong>3.1. 发送窗口为 $N$ 的选择重传 SR 协议为什么至少需要 $2N$ 个序号？</strong></p>
+  <label><input type="radio" name="cnq8" value="A" /> A. 为了让每个分组携带两个 IP 地址</label>
+  <label><input type="radio" name="cnq8" value="B" /> B. 避免新窗口分组与延迟到达的旧窗口分组混淆</label>
+  <label><input type="radio" name="cnq8" value="C" /> C. 因为 SR 不使用确认</label>
+  <label><input type="radio" name="cnq8" value="D" /> D. 为了把接收窗口固定为 1</label>
+  <div class="quiz-actions"><button type="button" class="submit-answer">提交答案</button><button type="button" class="show-answer">显示答案</button></div>
+  <p class="quiz-result" hidden></p>
+  <p class="quiz-explanation" hidden>正确答案：B。<br />解析：序号回绕时，发送和接收窗口不能覆盖同一组序号，否则接收方无法区分重传旧包和新包。</p>
+</div>
+
 ## 网络层
 
 ### 网络层服务、路由器和数据平面
@@ -457,6 +494,8 @@ IP 转发流程：
 普通 IP 转发过程中，路由器不查看传输层及上层协议内容。
 
 输入端口可独立查转发表，实现线速。转发表可用 TCAM 实现并行匹配。输入排队可能产生排头阻塞。交换结构可用共享内存、共享总线、Crossbar 或多级结构。输出端口需要缓冲和调度，常见调度有 FIFO、优先级、轮询、WFQ。
+
+排头阻塞指输入队首分组的目标输出繁忙，导致其后本可发往空闲输出的分组也无法通过。输出缓存过小会在突发到来时丢包，过大则可能形成 bufferbloat，使排队时延掩盖拥塞。严格优先级可能饿死低优先级队列；轮询在活跃队列间依次服务；WFQ 按权重近似公平分配链路。
 
 ### IPv4、ARP、DHCP、NAT 和 ICMP
 
@@ -514,6 +553,8 @@ ICMP 让主机和路由器报告差错和异常，封装在 IP 数据报中，�
 
 DV 使用 Bellman-Ford 思想。每个结点维护到所有结点的估计距离，并与邻居交换距离向量。优点是每个结点计算和存储要求小；缺点是坏消息传播慢，可能出现无穷计数。毒性逆转可缓解但不能彻底解决。
 
+距离向量更新为 $D_x(y)=\min_v\{c(x,v)+D_v(y)\}$。链路代价下降的“好消息”通常快速传播；代价上升时，邻居可能互相把对方当成更短下一跳，形成环路和无穷计数。毒性逆转能阻止典型两结点环，却不能消除更长环。
+
 LS 中每个结点通过链路状态广播获得相同拓扑，再以自己为源运行最短路算法生成转发表。消息数量约 $O(nE)$，每个结点计算 $O(n^2)$ 或 $O(n\log n)$，故障影响较小。
 
 层次路由通过自治系统 AS 解决扩展性和自治管理问题。AS 内使用 IGP，如 RIP、OSPF、IS-IS；AS 间使用 EGP，典型是 BGP。
@@ -546,6 +587,8 @@ BGP：
 - NEXT-HOP：使用该路径对应的下一跳 IP。
 
 BGP 路由选择自上而下：本地偏好值、最短 AS-PATH、最近 NEXT-HOP、附加标准、最低路由器 ID。AS 内常用 Hot Potato 策略，选择最近出口，最小化流量在本 AS 停留时间。
+
+BGP 属于路径向量协议。AS-PATH 不只衡量路径长度，也用于环路检测：收到的路径若已包含本 AS 号就拒绝。路由器可按商业关系导入、过滤和导出前缀，所以域间路由首先满足策略，未必选择物理或时延最短路径。
 
 ### SDN、IPv6、MPLS、VPN 和 QoS
 
@@ -596,6 +639,17 @@ QoS 可量化为带宽、时延、抖动、丢包率等。机制包括调度、�
   </div>
   <p class="quiz-result" hidden></p>
   <p class="quiz-explanation" hidden>正确答案：D。<br />解析：普通 IP 转发根据目的 IP 查转发表，转发时 TTL 减一、头部校验和更新，并重新进行链路层封装；通常不查看传输层和应用层内容。</p>
+</div>
+
+<div class="quiz-question" data-answer="C">
+  <p><strong>4.1. BGP 收到一条 AS-PATH 已包含本 AS 号的路由时，通常应如何处理？</strong></p>
+  <label><input type="radio" name="cnq9" value="A" /> A. 无条件设为最高本地偏好</label>
+  <label><input type="radio" name="cnq9" value="B" /> B. 删除 AS-PATH 后继续传播</label>
+  <label><input type="radio" name="cnq9" value="C" /> C. 拒绝该路由以避免域间环路</label>
+  <label><input type="radio" name="cnq9" value="D" /> D. 改用 ARP 广播验证路径</label>
+  <div class="quiz-actions"><button type="button" class="submit-answer">提交答案</button><button type="button" class="show-answer">显示答案</button></div>
+  <p class="quiz-result" hidden></p>
+  <p class="quiz-explanation" hidden>正确答案：C。<br />解析：路径向量显式列出经过的 AS，发现自身已在路径中即可判断这条更新会形成环路。</p>
 </div>
 
 ## 链路层、有线局域网和无线网络
@@ -712,6 +766,8 @@ CSMA/CA：
 
 RTS/CTS 预约机制用小报文预约信道，避免大帧传输冲突。
 
+发送者在 RTS 中声明持续时间，接收者以 CTS 响应；听到任一控制帧的站点设置 NAV，在预约期保持静默。RTS/CTS 自身有额外开销，通常只对大帧或隐藏终端冲突严重时划算。随后链路层 ACK 负责快速确认无线帧，但不替代 TCP 的端到端可靠性。
+
 ![802.11 RTS/CTS 预约机制](/blog/computer-networks/wifi-rts-cts.png)
 
 802.11 帧有多个地址字段，用于无线主机、AP、路由器等不同方向转发。
@@ -747,6 +803,17 @@ RTS/CTS 预约机制用小报文预约信道，避免大帧传输冲突。
   </div>
   <p class="quiz-result" hidden></p>
   <p class="quiz-explanation" hidden>正确答案：C。<br />解析：无线中发送时很难同时可靠侦听冲突，且隐藏终端会让站点听不到彼此，因此 802.11 用 CSMA/CA、ACK 和 RTS/CTS 等机制在发送前尽量避免冲突。</p>
+</div>
+
+<div class="quiz-question" data-answer="A">
+  <p><strong>5.1. 802.11 中其他站点听到 RTS 或 CTS 后设置 NAV 的目的是什么？</strong></p>
+  <label><input type="radio" name="cnq10" value="A" /> A. 在预约持续时间内保持静默，减少隐藏终端冲突</label>
+  <label><input type="radio" name="cnq10" value="B" /> B. 立即向所有 AP 广播数据</label>
+  <label><input type="radio" name="cnq10" value="C" /> C. 删除自己的 MAC 地址</label>
+  <label><input type="radio" name="cnq10" value="D" /> D. 把无线链路改成电路交换</label>
+  <div class="quiz-actions"><button type="button" class="submit-answer">提交答案</button><button type="button" class="show-answer">显示答案</button></div>
+  <p class="quiz-result" hidden></p>
+  <p class="quiz-explanation" hidden>正确答案：A。<br />解析：NAV 是虚拟载波侦听计时，告知站点信道已被预约，即使它听不到数据发送者也应暂缓发送。</p>
 </div>
 
 # 易错点 / 高频考点
