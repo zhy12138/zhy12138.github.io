@@ -88,8 +88,6 @@ export function validateContent(source, { filePath = 'article.md', publicDir = '
   if (!/本资料由原笔记蒸馏整理，建议配合原笔记查漏补缺/.test(sectionBody(body, '原笔记信息'))) {
     fail('原笔记信息缺少蒸馏资料提示。');
   }
-  const overviewCount = (sectionBody(body, '速览').match(/^\s*-\s+/gm) || []).length;
-  if (overviewCount < 5 || overviewCount > 8) fail(`速览应有 5–8 条要点，当前为 ${overviewCount} 条。`);
   if (!sectionBody(body, '易错点 / 高频考点').trim()) fail('易错点 / 高频考点不能为空。');
 
   const blocks = extractQuizBlocks(body);

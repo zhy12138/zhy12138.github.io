@@ -24,7 +24,8 @@ tags: ["课程笔记"]
 - Sarsa 是 on-policy，Q-learning 是 off-policy，Expected Sarsa 用期望替代单次采样，Double Q-learning 缓解最大化带来的高估。
 - Dyna 把真实交互、模型学习和规划结合起来；Dyna-Q+ 用探索红利适应环境变化，优先扫描提高回溯效率。
 - 函数近似用于状态空间过大时，用 $\hat v(s,W)$ 或 $\hat q(s,a,W)$ 泛化到未见状态；半梯度 TD 更新目标中含当前估计。
-- 深度强化学习中，DQN 用经验回放与目标网络稳定价值学习；Actor-Critic 由 critic 估值、actor 更新策略，TRPO/PPO、DDPG 等方法分别面向稳定策略更新与连续控制。
+- DQN 用神经网络近似 $Q$，经验回放降低样本相关性，目标网络稳定 target，Rainbow 综合多种改进。
+- Actor-Critic 用 critic 估计价值/优势，用 actor 更新策略；TRPO/PPO 控制策略更新幅度，DDPG 面向连续动作控制。
 - 多智能体 RL 关注 self-play、CTDE、合作/竞争/非完美信息；CFR 用反事实遗憾最小化求非完美信息博弈均衡。
 
 # 知识点整理
