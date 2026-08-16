@@ -181,13 +181,10 @@ const {
         font-size: .95rem;
       }
 
-      .site-search-trigger kbd {
-        padding: 1px 5px;
-        border: 1px solid var(--line);
-        border-radius: 5px;
-        background: rgba(255,255,255,.7);
-        color: var(--muted);
-        font: 700 .72rem/1.4 inherit;
+      .site-search-trigger svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
       }
 
       .search-dialog {
@@ -402,7 +399,10 @@ const {
       <nav class="site-nav" aria-label="主导航">
         <a href="/">首页</a>
         <a href="/blog/">Blog</a>
-        <button class="site-search-trigger" type="button" aria-haspopup="dialog"><span>搜索</span><kbd>⌘ K</kbd></button>
+        <button class="site-search-trigger" type="button" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <span>搜索</span>
+        </button>
         <a href="https://github.com/zhy12138" rel="noreferrer">GitHub</a>
       </nav>
     </header>
@@ -419,7 +419,7 @@ const {
         <input id="site-search-input" type="search" autocomplete="off" placeholder="搜索标题、标签、章节或正文…" />
         <button class="search-dialog__close" value="close" aria-label="关闭搜索">×</button>
       </form>
-      <ol class="search-results" id="search-results"><li class="search-empty">输入关键词开始搜索。也可以按 <kbd>Esc</kbd> 关闭。</li></ol>
+      <ol class="search-results" id="search-results"><li class="search-empty">输入关键词开始搜索。</li></ol>
     </dialog>
     <script>
       type SearchSection = { heading: string; anchor: string; text: string };
@@ -460,7 +460,7 @@ const {
         if (!normalized) {
           const empty = document.createElement('li');
           empty.className = 'search-empty';
-          empty.textContent = '输入关键词开始搜索。也可以按 Esc 关闭。';
+          empty.textContent = '输入关键词开始搜索。';
           searchResults.append(empty);
           return;
         }
@@ -524,14 +524,6 @@ const {
       searchTrigger?.addEventListener('click', openSearch);
       searchInput?.addEventListener('input', () => runSearch(searchInput.value));
       searchDialog?.addEventListener('click', (event) => { if (event.target === searchDialog) searchDialog.close(); });
-      document.addEventListener('keydown', (event) => {
-        const target = event.target as HTMLElement;
-        const isTyping = target.matches('input, textarea, select, [contenteditable="true"]');
-        if ((event.key.toLocaleLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) || (event.key === '/' && !isTyping)) {
-          event.preventDefault();
-          openSearch();
-        }
-      });
       const initialSearch = new URLSearchParams(window.location.search).get('search');
       if (initialSearch !== null && searchInput) {
         searchInput.value = initialSearch;
