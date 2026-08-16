@@ -375,7 +375,14 @@ const {
 
         .site-nav {
           width: 100%;
+          flex-wrap: wrap;
+          gap: 2px;
           justify-content: flex-start;
+        }
+
+        .site-nav a,
+        .site-search-trigger {
+          padding: 8px;
         }
 
         .music-player {
@@ -396,6 +403,7 @@ const {
       <nav class="site-nav" aria-label="主导航">
         <a href="/">首页</a>
         <a href="/blog/">Blog</a>
+        <a href="/tools/">工具</a>
         <button class="site-search-trigger" type="button" aria-haspopup="dialog">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
           <span>搜索</span>

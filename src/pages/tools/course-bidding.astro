@@ -1,0 +1,721 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="选课投点计算器 | 工具" description="在浏览器本地估算北大选课意愿点分配。">
+  <div class="tool-page">
+    <a class="back-link" href="/tools/">返回工具</a>
+
+    <header class="tool-head">
+      <div>
+        <p class="eyebrow">Course Bidding</p>
+        <h1>选课投点计算器</h1>
+        <p class="intro">根据课程热度和你的偏好，在需要抽签的课程之间分配 99 个意愿点。</p>
+      </div>
+      <span class="local-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M8 10V8a4 4 0 0 1 8 0v2" />
+          <rect x="5" y="10" width="14" height="10" rx="2" />
+          <path d="M12 14v2" />
+        </svg>
+        仅在本地处理
+      </span>
+    </header>
+
+    <section class="calculator" aria-labelledby="courses-title">
+      <div class="calculator-head">
+        <div>
+          <p class="eyebrow">Your Courses</p>
+          <h2 id="courses-title">课程信息</h2>
+        </div>
+        <div class="course-actions">
+          <button class="secondary-button" id="open-import" type="button">粘贴导入</button>
+          <button class="secondary-button" id="add-course" type="button">
+            <span aria-hidden="true">＋</span> 添加课程
+          </button>
+          <button class="clear-button" id="clear-courses" type="button">清空课程</button>
+        </div>
+      </div>
+
+      <p class="field-help">快乐值表示你想选这门课的程度，可以填学分或任意正数；数值越大，工具越优先照顾这门课。</p>
+      <div class="course-grid-head" id="course-grid-head" hidden aria-hidden="true">
+        <span>#</span>
+        <span>课程<small>选填</small></span>
+        <span>限选</span>
+        <span>已选</span>
+        <span>快乐</span>
+        <span>投点 / 中签</span>
+        <span></span>
+      </div>
+      <div id="course-list" class="course-list" aria-live="polite"></div>
+      <div id="empty-courses" class="empty-courses" hidden>
+        <strong>还没有课程</strong>
+        <p>添加一门课程后即可开始计算。</p>
+        <button class="secondary-button" type="button" data-add-course>添加课程</button>
+      </div>
+
+      <div class="actions">
+        <button class="primary-button" id="calculate" type="button">计算推荐投点</button>
+        <p id="form-status" class="form-status" role="status">课程信息会自动保存。</p>
+      </div>
+    </section>
+
+    <section class="summary" id="result-summary" aria-labelledby="summary-title" hidden>
+      <div>
+        <span>已分配意愿点</span>
+        <strong id="allocated-points">0 / 99</strong>
+      </div>
+      <div>
+        <span>总期望快乐值</span>
+        <strong id="expected-happiness">0.000</strong>
+      </div>
+      <p id="summary-title">结果是基于历史模型的估算，不代表实际中签结果。</p>
+    </section>
+
+    <footer class="method-note">
+      <h2>算法说明</h2>
+      <p>
+        计算机制参考了<a href="https://wyjjmzx.github.io/pku/toudian.html" rel="noreferrer">原始选课投点工具</a>：
+        先根据限选人数和已选人数估算竞争程度，再逐点调整分配，使总期望快乐值尽可能高。当前未超过限选人数的课程不参与投点。
+      </p>
+    </footer>
+  </div>
+
+  <dialog class="import-dialog" id="import-dialog" aria-labelledby="import-title">
+    <div class="import-dialog__head">
+      <div>
+        <p class="eyebrow">Paste Courses</p>
+        <h2 id="import-title">从选课页导入</h2>
+      </div>
+      <button class="dialog-close" id="close-import" type="button" aria-label="关闭导入窗口">×</button>
+    </div>
+    <p class="import-guide">在北大选课网站进入“预选 → 已选列表”，复制完整列表后粘贴到这里。</p>
+    <p class="import-warning">导入会替换当前全部课程以及已填写的快乐值。</p>
+    <label class="import-field">
+      <span>选课列表文本</span>
+      <textarea id="import-text" rows="8" placeholder="在这里粘贴复制的已选列表…"></textarea>
+    </label>
+    <div class="import-preview" id="import-preview" aria-live="polite">
+      <p id="import-status">粘贴后会在这里预览识别结果。</p>
+      <ul id="import-courses"></ul>
+    </div>
+    <div class="import-actions">
+      <button class="secondary-button" id="cancel-import" type="button">取消</button>
+      <button class="primary-button" id="confirm-import" type="button" disabled>导入课程</button>
+    </div>
+  </dialog>
+
+  <template id="course-template">
+    <article class="course-row">
+      <div class="course-index" aria-hidden="true"></div>
+      <label class="field field--name">
+        <span>课程名 <em>选填</em></span>
+        <input data-field="name" type="text" autocomplete="off" placeholder="例如：社会心理学" />
+      </label>
+      <label class="field">
+        <span>限选人数</span>
+        <input data-field="capacity" type="number" min="1" step="1" inputmode="numeric" />
+        <small data-error="capacity"></small>
+      </label>
+      <label class="field">
+        <span>已选人数</span>
+        <input data-field="enrolled" type="number" min="0" step="1" inputmode="numeric" />
+        <small data-error="enrolled"></small>
+      </label>
+      <label class="field">
+        <span>快乐值</span>
+        <input data-field="happiness" type="number" min="0" step="any" inputmode="decimal" placeholder="如：课程学分" />
+        <small data-error="happiness"></small>
+      </label>
+      <div class="course-result">
+        <span>推荐投点</span>
+        <strong data-result="points">—</strong>
+        <small data-result="probability" data-state="pending">计算后显示中签率</small>
+      </div>
+      <button class="delete-course" type="button" aria-label="删除课程"><span aria-hidden="true">删除</span></button>
+    </article>
+  </template>
+
+  <script>
+    import { recommendCoursePoints, type CourseInput } from '../../lib/course-bidding';
+    import { parseCourseSelectionText } from '../../lib/course-import.mjs';
+
+    type CourseDraft = {
+      id: string;
+      name: string;
+      capacity: number | null;
+      enrolled: number | null;
+      happiness: number | null;
+    };
+
+    type ImportedCourse = {
+      sourceKey: string;
+      courseCode: string;
+      classNumber: string;
+      name: string;
+      capacity: number;
+      enrolled: number;
+    };
+
+    const STORAGE_KEY = 'zhy12138.tools.course-bidding.v1';
+    const courseList = document.querySelector<HTMLDivElement>('#course-list');
+    const courseGridHead = document.querySelector<HTMLDivElement>('#course-grid-head');
+    const emptyCourses = document.querySelector<HTMLDivElement>('#empty-courses');
+    const template = document.querySelector<HTMLTemplateElement>('#course-template');
+    const addButton = document.querySelector<HTMLButtonElement>('#add-course');
+    const clearButton = document.querySelector<HTMLButtonElement>('#clear-courses');
+    const calculateButton = document.querySelector<HTMLButtonElement>('#calculate');
+    const formStatus = document.querySelector<HTMLParagraphElement>('#form-status');
+    const summary = document.querySelector<HTMLElement>('#result-summary');
+    const allocatedPoints = document.querySelector<HTMLElement>('#allocated-points');
+    const expectedHappiness = document.querySelector<HTMLElement>('#expected-happiness');
+    const importDialog = document.querySelector<HTMLDialogElement>('#import-dialog');
+    const importText = document.querySelector<HTMLTextAreaElement>('#import-text');
+    const importStatus = document.querySelector<HTMLParagraphElement>('#import-status');
+    const importCourses = document.querySelector<HTMLUListElement>('#import-courses');
+    const confirmImport = document.querySelector<HTMLButtonElement>('#confirm-import');
+
+    const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    const blankCourse = (): CourseDraft => ({
+      id: newId(),
+      name: '',
+      capacity: null,
+      enrolled: null,
+      happiness: null,
+    });
+
+    function isNullableNumber(value: unknown): value is number | null {
+      return value === null || (typeof value === 'number' && Number.isFinite(value));
+    }
+
+    function isCourseDraft(value: unknown): value is CourseDraft {
+      if (!value || typeof value !== 'object') return false;
+      const course = value as Partial<CourseDraft>;
+      return typeof course.id === 'string'
+        && typeof course.name === 'string'
+        && isNullableNumber(course.capacity)
+        && isNullableNumber(course.enrolled)
+        && isNullableNumber(course.happiness);
+    }
+
+    function loadCourses(): CourseDraft[] {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw === null) return [blankCourse()];
+        const stored = JSON.parse(raw) as { version?: unknown; courses?: unknown };
+        if ((stored.version !== 1 && stored.version !== 2)
+          || !Array.isArray(stored.courses)
+          || !stored.courses.every(isCourseDraft)) {
+          return [blankCourse()];
+        }
+        return stored.courses.map((course) => ({
+          id: course.id,
+          name: course.name,
+          capacity: course.capacity,
+          enrolled: course.enrolled,
+          happiness: course.happiness,
+        }));
+      } catch {
+        return [blankCourse()];
+      }
+    }
+
+    let courses = loadCourses();
+
+    function saveCourses() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, courses }));
+        return true;
+      } catch {
+        if (formStatus) formStatus.textContent = '浏览器未能保存数据，本次输入仍可继续计算。';
+        return false;
+      }
+    }
+
+    function parseNumber(value: string) {
+      if (value.trim() === '') return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function markResultsStale() {
+      summary?.setAttribute('hidden', '');
+      courseList?.querySelectorAll<HTMLElement>('[data-result="points"]').forEach((node) => node.textContent = '—');
+      courseList?.querySelectorAll<HTMLElement>('[data-result="probability"]').forEach((node) => {
+        node.textContent = '计算后显示中签率';
+        node.dataset.state = 'pending';
+        delete node.dataset.compact;
+      });
+      if (formStatus) formStatus.textContent = '更改已保存，点击计算更新结果。';
+    }
+
+    let parsedImport: { courses: ImportedCourse[]; skipped: number } = { courses: [], skipped: 0 };
+
+    function renderImportPreview() {
+      if (!importStatus || !importCourses || !confirmImport) return;
+      importCourses.replaceChildren();
+      confirmImport.disabled = parsedImport.courses.length === 0;
+      confirmImport.textContent = '导入课程';
+
+      if (!importText?.value.trim()) {
+        importStatus.textContent = '粘贴后会在这里预览识别结果。';
+        return;
+      }
+      if (!parsedImport.courses.length) {
+        importStatus.textContent = '没有识别到课程，请确认复制的是“预选 → 已选列表”的完整内容。';
+        return;
+      }
+
+      importStatus.textContent = `识别到 ${parsedImport.courses.length} 门课程${parsedImport.skipped ? `，另有 ${parsedImport.skipped} 个条目未识别` : ''}。`;
+      confirmImport.textContent = `覆盖并导入 ${parsedImport.courses.length} 门`;
+      parsedImport.courses.forEach((course) => {
+        const item = document.createElement('li');
+        const name = document.createElement('strong');
+        const counts = document.createElement('span');
+        name.textContent = course.name;
+        counts.textContent = `限选 ${course.capacity} · 已选 ${course.enrolled}`;
+        item.append(name, counts);
+        importCourses.append(item);
+      });
+    }
+
+    function openImportDialog() {
+      if (!importDialog || !importText) return;
+      importText.value = '';
+      parsedImport = { courses: [], skipped: 0 };
+      renderImportPreview();
+      importDialog.showModal();
+      importText.focus();
+    }
+
+    function closeImportDialog() {
+      importDialog?.close();
+    }
+
+    function importParsedCourses() {
+      if (!parsedImport.courses.length) return;
+      courses = parsedImport.courses.map((course) => ({
+        id: newId(),
+        name: course.name,
+        capacity: course.capacity,
+        enrolled: course.enrolled,
+        happiness: null,
+      }));
+      const saved = saveCourses();
+      renderCourses();
+      markResultsStale();
+      if (formStatus && saved) {
+        formStatus.textContent = `已覆盖并导入 ${parsedImport.courses.length} 门课程，请填写快乐值。`;
+      }
+      closeImportDialog();
+    }
+
+    function addCourse() {
+      courses.push(blankCourse());
+      saveCourses();
+      renderCourses();
+      courseList?.querySelector<HTMLInputElement>('.course-row:last-child [data-field="name"]')?.focus();
+    }
+
+    function clearCourses() {
+      if (!courses.length || !window.confirm('确定清空所有课程吗？此操作会同步清除本地保存的课程。')) return;
+      courses = [];
+      saveCourses();
+      renderCourses();
+      summary?.setAttribute('hidden', '');
+      if (formStatus) formStatus.textContent = '课程已清空。';
+    }
+
+    function renderCourses() {
+      if (!courseList || !template || !emptyCourses) return;
+      courseList.replaceChildren();
+      emptyCourses.hidden = courses.length > 0;
+      if (courseGridHead) courseGridHead.hidden = courses.length === 0;
+      calculateButton?.toggleAttribute('disabled', courses.length === 0);
+      clearButton?.toggleAttribute('disabled', courses.length === 0);
+
+      courses.forEach((course, index) => {
+        const fragment = template.content.cloneNode(true) as DocumentFragment;
+        const row = fragment.querySelector<HTMLElement>('.course-row');
+        const indexNode = fragment.querySelector<HTMLElement>('.course-index');
+        if (!row || !indexNode) return;
+        row.dataset.courseId = course.id;
+        indexNode.textContent = String(index + 1).padStart(2, '0');
+
+        const bindField = (field: keyof Pick<CourseDraft, 'name' | 'capacity' | 'enrolled' | 'happiness'>) => {
+          const input = fragment.querySelector<HTMLInputElement>(`[data-field="${field}"]`);
+          if (!input) return;
+          input.value = course[field] === null ? '' : String(course[field]);
+          input.addEventListener('input', () => {
+            if (field === 'name') course.name = input.value;
+            else course[field] = parseNumber(input.value);
+            input.closest('.field')?.classList.remove('field--invalid');
+            const error = input.closest('.field')?.querySelector<HTMLElement>('[data-error]');
+            if (error) error.textContent = '';
+            saveCourses();
+            markResultsStale();
+          });
+        };
+        bindField('name');
+        bindField('capacity');
+        bindField('enrolled');
+        bindField('happiness');
+
+        const deleteButton = fragment.querySelector<HTMLButtonElement>('.delete-course');
+        deleteButton?.addEventListener('click', () => {
+          courses = courses.filter((item) => item.id !== course.id);
+          saveCourses();
+          renderCourses();
+          if (formStatus) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
+        });
+        courseList.append(fragment);
+      });
+    }
+
+    function showError(row: HTMLElement, field: 'capacity' | 'enrolled' | 'happiness', message: string) {
+      const input = row.querySelector<HTMLInputElement>(`[data-field="${field}"]`);
+      const wrapper = input?.closest('.field');
+      const error = wrapper?.querySelector<HTMLElement>('[data-error]');
+      wrapper?.classList.add('field--invalid');
+      if (error) error.textContent = message;
+      return input;
+    }
+
+    function calculate() {
+      if (!courseList || !courses.length) return;
+      let firstInvalid: HTMLInputElement | null | undefined;
+      const validCourses: CourseInput[] = [];
+
+      courses.forEach((course) => {
+        const row = courseList.querySelector<HTMLElement>(`[data-course-id="${CSS.escape(course.id)}"]`);
+        if (!row) return;
+        row.querySelectorAll('.field--invalid').forEach((field) => field.classList.remove('field--invalid'));
+        row.querySelectorAll<HTMLElement>('[data-error]').forEach((error) => error.textContent = '');
+
+        if (!Number.isInteger(course.capacity) || (course.capacity ?? 0) <= 0) {
+          firstInvalid ??= showError(row, 'capacity', '请输入大于 0 的整数');
+        }
+        if (!Number.isInteger(course.enrolled) || (course.enrolled ?? -1) < 0) {
+          firstInvalid ??= showError(row, 'enrolled', '请输入非负整数');
+        }
+        if (course.happiness === null || course.happiness <= 0) {
+          firstInvalid ??= showError(row, 'happiness', '请输入正数');
+        }
+
+        if (Number.isInteger(course.capacity) && course.capacity! > 0
+          && Number.isInteger(course.enrolled) && course.enrolled! >= 0
+          && course.happiness !== null && course.happiness > 0) {
+          validCourses.push(course as CourseInput);
+        }
+      });
+
+      if (firstInvalid || validCourses.length !== courses.length) {
+        if (formStatus) formStatus.textContent = '请先修正标出的课程信息。';
+        summary?.setAttribute('hidden', '');
+        firstInvalid?.focus();
+        return;
+      }
+
+      const recommendations = recommendCoursePoints(validCourses);
+      recommendations.forEach((course, index) => {
+        const row = courseList.querySelector<HTMLElement>(`[data-course-id="${CSS.escape(course.id)}"]`);
+        const points = row?.querySelector<HTMLElement>('[data-result="points"]');
+        const probability = row?.querySelector<HTMLElement>('[data-result="probability"]');
+        if (points) points.textContent = String(course.points);
+        if (probability) {
+          probability.textContent = course.needsLottery
+            ? `${course.probability.toFixed(2)}%`
+            : '无需抽签';
+          probability.dataset.state = course.needsLottery ? 'lottery' : 'safe';
+          probability.dataset.compact = course.needsLottery ? `${Math.round(course.probability)}%` : '无需';
+        }
+        row?.style.setProperty('--result-order', String(index));
+      });
+
+      const lotteryCourses = recommendations.filter((course) => course.needsLottery);
+      const totalPoints = lotteryCourses.reduce((total, course) => total + course.points, 0);
+      const totalHappiness = recommendations.reduce((total, course) => total + course.expectedHappiness, 0);
+      if (allocatedPoints) allocatedPoints.textContent = `${totalPoints} / 99`;
+      if (expectedHappiness) expectedHappiness.textContent = totalHappiness.toFixed(3);
+      summary?.removeAttribute('hidden');
+      if (formStatus) {
+        formStatus.textContent = lotteryCourses.length
+          ? '计算完成。推荐点数合计为 99。'
+          : '这些课程当前都未超额，无需分配意愿点。';
+      }
+    }
+
+    addButton?.addEventListener('click', addCourse);
+    clearButton?.addEventListener('click', clearCourses);
+    document.querySelector('[data-add-course]')?.addEventListener('click', addCourse);
+    calculateButton?.addEventListener('click', calculate);
+    document.querySelector('#open-import')?.addEventListener('click', openImportDialog);
+    document.querySelector('#close-import')?.addEventListener('click', closeImportDialog);
+    document.querySelector('#cancel-import')?.addEventListener('click', closeImportDialog);
+    confirmImport?.addEventListener('click', importParsedCourses);
+    importText?.addEventListener('input', () => {
+      parsedImport = parseCourseSelectionText(importText.value) as { courses: ImportedCourse[]; skipped: number };
+      renderImportPreview();
+    });
+    importDialog?.addEventListener('click', (event) => {
+      if (event.target === importDialog) closeImportDialog();
+    });
+    renderCourses();
+  </script>
+
+  <style>
+    .tool-page { padding: 18px 0 24px; }
+    .back-link {
+      display: inline-flex;
+      color: var(--primary);
+      font-weight: 720;
+    }
+    .back-link:hover,
+    .back-link:focus-visible {
+      color: var(--primary-strong);
+      outline: none;
+    }
+
+    .tool-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 34px 0 28px;
+    }
+
+    .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 0; font-size: clamp(2.25rem, 6vw, 4.4rem); line-height: 1.02; }
+    .intro { max-width: 720px; margin: 18px 0 0; color: var(--muted); font-size: 1.04rem; line-height: 1.75; }
+
+    .local-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      padding: 10px 13px;
+      border: 1px solid rgba(0, 167, 181, .24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .76);
+      color: #08727a;
+      font-size: .88rem;
+      font-weight: 750;
+    }
+    .local-badge svg { width: 17px; height: 17px; }
+
+    .calculator {
+      margin-top: 8px;
+      padding: 26px;
+      border: 1px solid rgba(220, 232, 245, .96);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .88);
+      box-shadow: 0 18px 48px rgba(42, 88, 138, .09);
+    }
+    .calculator-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .calculator-head h2 { margin: 0; font-size: 1.55rem; }
+    .course-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .field-help { margin: 14px 0 22px; color: var(--muted); font-size: .9rem; line-height: 1.65; }
+    .course-grid-head { display: none; }
+    .course-list { display: grid; gap: 12px; }
+
+    .course-row {
+      display: grid;
+      grid-template-columns: 36px minmax(150px, 1.5fr) repeat(3, minmax(100px, .75fr)) minmax(130px, 1fr) auto;
+      align-items: start;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(248, 251, 255, .76);
+    }
+    .course-index { padding-top: 30px; color: rgba(20, 103, 216, .7); font-family: ui-monospace, monospace; font-size: .8rem; font-weight: 750; }
+    .field { display: grid; gap: 7px; min-width: 0; color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .field em { margin-left: 3px; color: var(--accent); font-size: .68rem; font-style: normal; font-weight: 800; }
+    .field input {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+      padding: 0 11px;
+      border: 1px solid #cfdeed;
+      border-radius: 7px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: .94rem;
+      font-weight: 500;
+    }
+    .field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(20, 103, 216, .1); }
+    .field small { min-height: 0; color: #bf3f45; font-size: .72rem; font-weight: 600; line-height: 1.3; }
+    .field--invalid input { border-color: #d95b61; background: #fffafa; }
+
+    .course-result { display: grid; gap: 4px; padding-top: 1px; }
+    .course-result > span { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .course-result strong { color: var(--primary-strong); font-size: 1.7rem; line-height: 1.2; }
+    .course-result small {
+      display: inline-flex;
+      width: fit-content;
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .course-result small[data-state="lottery"] { background: rgba(20, 103, 216, .1); color: var(--primary-strong); }
+    .course-result small[data-state="lottery"]::before { content: "中签率约 "; }
+    .course-result small[data-state="safe"] { background: rgba(0, 167, 181, .1); color: #08727a; }
+    .course-result small[data-state="pending"] { padding: 0; background: transparent; color: var(--muted); font-weight: 600; }
+
+    button { font: inherit; }
+    .primary-button,
+    .secondary-button,
+    .clear-button,
+    .delete-course { border-radius: 8px; cursor: pointer; font-weight: 750; }
+    .primary-button { padding: 12px 20px; border: 1px solid var(--primary); background: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(20, 103, 216, .18); }
+    .primary-button:hover { background: var(--primary-strong); }
+    .primary-button:disabled { cursor: not-allowed; opacity: .45; }
+    .secondary-button { padding: 10px 14px; border: 1px solid rgba(20, 103, 216, .2); background: rgba(20, 103, 216, .07); color: var(--primary-strong); }
+    .secondary-button:hover { background: rgba(20, 103, 216, .12); }
+    .clear-button { padding: 10px 14px; border: 1px solid #bd3e47; background: #c94b54; color: #fff; box-shadow: 0 8px 18px rgba(191, 63, 69, .16); }
+    .clear-button:hover { border-color: #9f3038; background: #ad3740; }
+    .clear-button:disabled { cursor: not-allowed; opacity: .4; }
+    .delete-course { margin-top: 25px; padding: 8px 9px; border: 0; background: transparent; color: #a64a50; font-size: .82rem; }
+    .delete-course:hover { background: rgba(191, 63, 69, .08); }
+
+    .empty-courses { padding: 38px 20px; border: 1px dashed rgba(20, 103, 216, .25); border-radius: 9px; text-align: center; }
+    .empty-courses p { margin: 8px 0 18px; color: var(--muted); }
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 22px; }
+    .form-status { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+
+    .import-dialog {
+      width: min(680px, calc(100% - 28px));
+      max-height: min(780px, calc(100vh - 32px));
+      padding: 24px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 28px 90px rgba(20, 45, 75, .28);
+    }
+    .import-dialog::backdrop { background: rgba(16, 31, 50, .46); backdrop-filter: blur(3px); }
+    .import-dialog__head { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .import-dialog__head h2 { margin: 0; font-size: 1.5rem; }
+    .dialog-close { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 7px; background: rgba(20, 103, 216, .07); color: var(--muted); cursor: pointer; font-size: 1.25rem; }
+    .dialog-close:hover { background: rgba(20, 103, 216, .12); color: var(--primary-strong); }
+    .import-guide { margin: 14px 0 18px; color: var(--muted); font-size: .9rem; line-height: 1.65; }
+    .import-warning { margin: -8px 0 16px; color: #a64a50; font-size: .82rem; font-weight: 750; line-height: 1.55; }
+    .import-field { display: grid; gap: 7px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+    .import-field textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      resize: vertical;
+      border: 1px solid #cfdeed;
+      border-radius: 8px;
+      outline: none;
+      background: #fbfdff;
+      color: var(--text);
+      font: 500 .86rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .import-field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(20, 103, 216, .1); }
+    .import-preview { margin-top: 14px; padding: 14px 16px; border-radius: 9px; background: rgba(238, 246, 255, .72); }
+    .import-preview > p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.55; }
+    .import-preview ul { display: grid; gap: 8px; max-height: 190px; margin: 12px 0 0; padding: 0; overflow-y: auto; list-style: none; }
+    .import-preview ul:empty { display: none; }
+    .import-preview li { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding-top: 8px; border-top: 1px solid rgba(20, 103, 216, .12); }
+    .import-preview li strong { min-width: 0; font-size: .88rem; line-height: 1.45; }
+    .import-preview li span { flex: 0 0 auto; color: var(--muted); font-size: .78rem; }
+    .import-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 220px)) minmax(220px, 1fr);
+      align-items: center;
+      gap: 28px;
+      margin-top: 18px;
+      padding: 20px 24px;
+      border: 1px solid rgba(20, 103, 216, .18);
+      border-radius: 11px;
+      background: rgba(238, 246, 255, .86);
+    }
+    .summary[hidden] { display: none; }
+    .summary div { display: grid; gap: 5px; }
+    .summary span { color: var(--muted); font-size: .8rem; font-weight: 700; }
+    .summary strong { color: var(--primary-strong); font-size: 1.45rem; }
+    .summary p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.6; }
+
+    .method-note { max-width: 820px; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .method-note h2 { margin: 0 0 10px; font-size: 1.1rem; }
+    .method-note p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.75; }
+    .method-note a { color: var(--primary-strong); text-decoration: underline; text-underline-offset: 3px; }
+
+    @media (max-width: 900px) {
+      .course-row { grid-template-columns: 30px repeat(6, minmax(0, 1fr)); }
+      .course-index { grid-column: 1; grid-row: 1 / span 2; }
+      .field--name { grid-column: 2 / -1; }
+      .field:not(.field--name) { grid-column: span 2; }
+      .course-result { grid-column: 2 / span 4; }
+      .delete-course { grid-column: 6 / -1; justify-self: end; margin-top: 7px; }
+    }
+
+    @media (max-width: 640px) {
+      .tool-page { padding-top: 8px; }
+      .tool-head { display: grid; gap: 20px; padding: 28px 0 24px; }
+      .local-badge { justify-self: start; }
+      .calculator { padding: 16px 10px; }
+      .calculator-head { display: grid; align-items: start; }
+      .course-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: stretch; }
+      .calculator-head .secondary-button,
+      .calculator-head .clear-button { padding: 9px 4px; font-size: .76rem; }
+      .field-help { margin-bottom: 16px; }
+      .course-grid-head,
+      .course-row {
+        grid-template-columns: 16px minmax(58px, 1.5fr) repeat(3, minmax(32px, .72fr)) minmax(46px, 1fr) 20px;
+        gap: 2px;
+      }
+      .course-grid-head {
+        display: grid;
+        align-items: end;
+        padding: 0 6px 6px;
+        color: var(--muted);
+        font-size: .62rem;
+        font-weight: 750;
+        line-height: 1.2;
+        text-align: center;
+      }
+      .course-grid-head[hidden] { display: none; }
+      .course-grid-head span:nth-child(2) { text-align: left; }
+      .course-grid-head small { display: block; color: var(--accent); font-size: .54rem; line-height: 1.15; }
+      .course-list { gap: 6px; }
+      .course-row { align-items: center; padding: 7px 6px; border-radius: 7px; }
+      .course-index { grid-column: auto; grid-row: auto; padding: 0; font-size: .65rem; text-align: center; }
+      .field,
+      .field--name,
+      .field:not(.field--name) { display: block; grid-column: auto; min-width: 0; }
+      .field > span,
+      .field > small { display: none; }
+      .field input { height: 34px; padding: 0 3px; border-radius: 5px; font-size: .72rem; text-align: center; }
+      .field--name input { text-align: left; }
+      .course-result { display: grid; grid-column: auto; grid-row: auto; gap: 1px; min-width: 0; padding: 0; text-align: center; }
+      .course-result > span { display: none; }
+      .course-result strong { font-size: 1.12rem; }
+      .course-result small { display: inline-block; max-width: 100%; padding: 2px 3px; overflow: hidden; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
+      .course-result small[data-state="lottery"]::before { content: none; }
+      .course-result small[data-state="pending"] { display: none; }
+      .course-result small:not([data-state="pending"]) { font-size: 0; }
+      .course-result small:not([data-state="pending"])::after { content: attr(data-compact); font-size: .61rem; }
+      .delete-course { grid-column: auto; grid-row: auto; justify-self: center; margin: 0; padding: 3px; font-size: 0; }
+      .delete-course span { display: none; }
+      .delete-course::before { content: "×"; font-size: 1rem; line-height: 1; }
+      .actions { align-items: stretch; flex-direction: column; }
+      .primary-button { width: 100%; }
+      .summary { grid-template-columns: 1fr 1fr; gap: 18px 12px; padding: 18px; }
+      .summary p { grid-column: 1 / -1; }
+      .import-dialog { padding: 20px 16px; }
+      .import-preview li { display: grid; gap: 3px; }
+      .import-actions .primary-button,
+      .import-actions .secondary-button { flex: 1 1 0; }
+    }
+  </style>
+</BaseLayout>

@@ -7,7 +7,8 @@
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "check:content": "node scripts/content-lint.mjs",
     "test:content": "node --test scripts/content-lint.test.mjs",
-    "build": "npm run check:content && ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "test:tools": "node --test scripts/course-import.test.mjs",
+    "build": "npm run check:content && npm run test:tools && ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
   },
   "dependencies": {
