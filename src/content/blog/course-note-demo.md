@@ -69,13 +69,13 @@ function hasCourseNoteTag(tags: string[]) {
 
 ## 选择题模块
 
-选择题需要使用下面这种 HTML 结构。`data-answer` 是正确选项；每个 radio 的 `name` 在同一题内保持一致，不同题之间不要重复。
+选择题需要使用下面这种 HTML 结构。`data-answer` 是正确选项；每个 radio 的 `name` 在同一题内保持一致，不同题之间不要重复。题干、选项和解析中的行内代码都可以使用反引号包裹。
 
 <div class="quiz-question" data-answer="B">
-  <p class="quiz-prompt"><span class="quiz-number">1.</span><strong>课程笔记 tag 的标题编号从哪里开始？</strong></p>
+  <p class="quiz-prompt"><span class="quiz-number">1.</span><strong>课程笔记的 `# 知识点整理` 章节从哪一级标题开始编号？</strong></p>
 
   <label><input type="radio" name="course-demo-q1" value="A" /> A. 从文章第一个一级标题开始</label>
-  <label><input type="radio" name="course-demo-q1" value="B" /> B. 从 `# 知识点整理` 章节内的二级标题开始</label>
+  <label><input type="radio" name="course-demo-q1" value="B" /> B. 从该章节内的二级标题开始</label>
   <label><input type="radio" name="course-demo-q1" value="C" /> C. 从 frontmatter 的 title 开始</label>
   <label><input type="radio" name="course-demo-q1" value="D" /> D. 所有标题都不编号</label>
 
@@ -95,4 +95,3 @@ function hasCourseNoteTag(tags: string[]) {
 > 易错点：新增课程笔记文章时，先确认是否真的需要 tag 专属样式；普通随笔不应该加 `课程笔记` tag。
 
 图片建议放在 `public/blog/<文章 slug>/` 下，然后在 Markdown 中用 `/blog/<文章 slug>/图片名` 引用。
-

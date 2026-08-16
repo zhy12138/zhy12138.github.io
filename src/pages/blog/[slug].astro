@@ -345,6 +345,42 @@ const toc = headings.map((heading) => {
         });
       }
 
+      function renderQuizInlineCode() {
+        const inlineCodePattern = /`([^`\n]+)`/g;
+
+        articleTocArticle.querySelectorAll<HTMLElement>('.quiz-question').forEach((question) => {
+          if (question.dataset.inlineCodeRendered === 'true') return;
+          const walker = document.createTreeWalker(question, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+              const parent = node.parentElement;
+              if (!parent || parent.closest('code, pre, script, style')) return NodeFilter.FILTER_REJECT;
+              return node.textContent?.includes('`') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            },
+          });
+          const textNodes: Text[] = [];
+          while (walker.nextNode()) textNodes.push(walker.currentNode as Text);
+
+          textNodes.forEach((textNode) => {
+            const source = textNode.data;
+            const matches = Array.from(source.matchAll(inlineCodePattern));
+            if (!matches.length) return;
+            const fragment = document.createDocumentFragment();
+            let cursor = 0;
+            matches.forEach((match) => {
+              const index = match.index ?? 0;
+              fragment.append(source.slice(cursor, index));
+              const code = document.createElement('code');
+              code.textContent = match[1];
+              fragment.append(code);
+              cursor = index + match[0].length;
+            });
+            fragment.append(source.slice(cursor));
+            textNode.replaceWith(fragment);
+          });
+          question.dataset.inlineCodeRendered = 'true';
+        });
+      }
+
       function markQuizOption(question: Element, value: string | null, className: string) {
         if (!value) return;
         const input = question.querySelector<HTMLInputElement>(`input[value="${CSS.escape(value)}"]`);
@@ -497,9 +533,10 @@ const toc = headings.map((heading) => {
           code.append(line);
         });
       });
-    }
+      }
 
       if (isCourseNoteArticle) {
+        renderQuizInlineCode();
         articleTocArticle.querySelectorAll('.quiz-question').forEach((question) => {
       const answer = question.getAttribute('data-answer');
       const submitButton = question.querySelector('.submit-answer');
