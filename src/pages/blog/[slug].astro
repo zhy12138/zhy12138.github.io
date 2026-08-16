@@ -1025,7 +1025,13 @@ const toc = headings.map((heading) => {
       border-bottom: 1px solid var(--line);
     }
 
-    .review-modes { display: flex; gap: 4px; }
+    .review-modes {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 10px;
+      background: rgba(20,103,216,.06);
+    }
     .review-toolbar button, .random-review__head button, .random-submit {
       min-height: 38px;
       padding: 0 13px;
@@ -1038,8 +1044,8 @@ const toc = headings.map((heading) => {
       font-size: .88rem;
       font-weight: 750;
     }
-    .review-toolbar button:hover, .review-toolbar button:focus-visible { color: var(--primary-strong); background: rgba(20,103,216,.07); outline: none; }
-    .review-toolbar [data-review-mode].is-active { border-color: rgba(20,103,216,.18); background: rgba(20,103,216,.1); color: var(--primary-strong); }
+    .review-toolbar button:hover, .review-toolbar button:focus-visible { color: var(--primary-strong); background: rgba(20,103,216,.11); outline: none; }
+    .review-toolbar [data-review-mode].is-active { border-color: rgba(20,103,216,.2); background: rgba(20,103,216,.16); color: var(--primary-strong); }
     .review-print { border-color: var(--line) !important; background: rgba(255,255,255,.58) !important; }
     .review-panel { min-height: 240px; }
     .quick-review__intro, .random-review__head { margin-bottom: 28px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
