@@ -48,3 +48,25 @@ export function parseCourseSelectionText(input) {
   const uniqueCourses = [...new Map(courses.map((course) => [course.sourceKey, course])).values()];
   return { courses: uniqueCourses, skipped: skipped + courses.length - uniqueCourses.length };
 }
+
+/**
+ * @template {{ sourceKey: string }} T
+ * @param {T[]} importedCourses
+ * @param {{ sourceKey?: string | null, happiness?: number | null }[]} existingCourses
+ * @param {boolean} preserveHappiness
+ * @returns {(T & { happiness: number | null })[]}
+ */
+export function prepareImportedCourses(importedCourses, existingCourses, preserveHappiness) {
+  const happinessBySourceKey = new Map(
+    existingCourses
+      .filter((course) => typeof course.sourceKey === 'string' && course.sourceKey)
+      .map((course) => [course.sourceKey, course.happiness ?? null]),
+  );
+
+  return importedCourses.map((course) => ({
+    ...course,
+    happiness: preserveHappiness && happinessBySourceKey.has(course.sourceKey)
+      ? happinessBySourceKey.get(course.sourceKey) ?? null
+      : null,
+  }));
+}

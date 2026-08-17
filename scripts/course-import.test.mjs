@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import { parseCourseSelectionText } from '../src/lib/course-import.mjs';
+import { parseCourseSelectionText, prepareImportedCourses } from '../src/lib/course-import.mjs';
 
 const expected = [
   ['90010001:1', '构造体协同作战基础', 40, 63],
@@ -24,4 +24,24 @@ test('parses the sanitized course-selection fixture', async () => {
 
 test('parser rejects unrelated pasted text', () => {
   assert.deepEqual(parseCourseSelectionText('课程名\t限数/已选\n没有课程数据'), { courses: [], skipped: 0 });
+});
+
+test('preserves happiness only for the same imported course', () => {
+  const imported = [
+    { sourceKey: '90010001:1', name: '构造体协同作战基础', capacity: 40, enrolled: 70 },
+    { sourceKey: '90010002:2', name: '意识海稳定性训练', capacity: 80, enrolled: 60 },
+  ];
+  const existing = [
+    { sourceKey: '90010001:1', name: '旧课程名不影响匹配', happiness: 3.5 },
+    { sourceKey: '90019999:1', name: '意识海稳定性训练', happiness: 9 },
+  ];
+
+  assert.deepEqual(
+    prepareImportedCourses(imported, existing, true).map((course) => course.happiness),
+    [3.5, null],
+  );
+  assert.deepEqual(
+    prepareImportedCourses(imported, existing, false).map((course) => course.happiness),
+    [null, null],
+  );
 });
