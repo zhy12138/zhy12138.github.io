@@ -40,9 +40,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <p class="field-help">快乐值表示你想选这门课的程度，可以填学分或任意正数；数值越大，工具越优先照顾这门课。</p>
       <div class="course-grid-head" id="course-grid-head" hidden aria-hidden="true">
         <span>#</span>
-        <span>课程<small>选填</small></span>
-        <span>限选</span>
-        <span>已选</span>
+        <span>课程</span>
+        <span>限 / 选</span>
         <span>快乐</span>
         <span>投点 / 中签</span>
         <span></span>
@@ -112,8 +111,51 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </div>
   </dialog>
 
+  <dialog class="course-edit-dialog" id="course-edit-dialog" aria-labelledby="course-edit-title">
+    <div class="course-edit-head">
+      <div>
+        <p class="eyebrow">Edit Course</p>
+        <h2 id="course-edit-title">编辑课程</h2>
+      </div>
+      <button class="dialog-close" id="close-course-edit" type="button" aria-label="关闭课程编辑">×</button>
+    </div>
+    <div class="course-edit-fields">
+      <label class="edit-field edit-field--name">
+        <span>课程名 <em>选填</em></span>
+        <input id="edit-course-name" type="text" autocomplete="off" />
+      </label>
+      <label class="edit-field">
+        <span>限选人数</span>
+        <input id="edit-course-capacity" type="number" min="1" step="1" inputmode="numeric" />
+        <small data-edit-error="capacity"></small>
+      </label>
+      <label class="edit-field">
+        <span>已选人数</span>
+        <input id="edit-course-enrolled" type="number" min="0" step="1" inputmode="numeric" />
+        <small data-edit-error="enrolled"></small>
+      </label>
+      <label class="edit-field">
+        <span>快乐值</span>
+        <input id="edit-course-happiness" type="number" min="0" step="any" inputmode="decimal" />
+        <small data-edit-error="happiness"></small>
+      </label>
+    </div>
+    <div class="course-edit-actions">
+      <button class="clear-button" id="delete-edited-course" type="button">删除课程</button>
+      <button class="primary-button" id="finish-course-edit" type="button">完成</button>
+    </div>
+  </dialog>
+
   <template id="course-template">
     <article class="course-row">
+      <button class="course-summary" type="button">
+        <span class="course-summary__index" data-summary="index"></span>
+        <strong class="course-summary__name" data-summary="name"></strong>
+        <span class="course-summary__counts" data-summary="counts"></span>
+        <span class="course-summary__happiness" data-summary="happiness"></span>
+        <strong class="course-summary__result" data-summary="result">—</strong>
+        <span class="course-summary__chevron" aria-hidden="true">›</span>
+      </button>
       <div class="course-index" aria-hidden="true"></div>
       <label class="field field--name">
         <span>课程名 <em>选填</em></span>
@@ -165,6 +207,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       enrolled: number;
     };
 
+    type NumericField = 'capacity' | 'enrolled' | 'happiness';
+
     const STORAGE_KEY = 'zhy12138.tools.course-bidding.v1';
     const courseList = document.querySelector<HTMLDivElement>('#course-list');
     const courseGridHead = document.querySelector<HTMLDivElement>('#course-grid-head');
@@ -183,6 +227,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const importCourses = document.querySelector<HTMLUListElement>('#import-courses');
     const confirmImport = document.querySelector<HTMLButtonElement>('#confirm-import');
     const preserveHappiness = document.querySelector<HTMLInputElement>('#preserve-happiness');
+    const courseEditDialog = document.querySelector<HTMLDialogElement>('#course-edit-dialog');
+    const editCourseName = document.querySelector<HTMLInputElement>('#edit-course-name');
+    const editCourseCapacity = document.querySelector<HTMLInputElement>('#edit-course-capacity');
+    const editCourseEnrolled = document.querySelector<HTMLInputElement>('#edit-course-enrolled');
+    const editCourseHappiness = document.querySelector<HTMLInputElement>('#edit-course-happiness');
+    const deleteEditedCourse = document.querySelector<HTMLButtonElement>('#delete-edited-course');
+    let editingCourseId: string | null = null;
+    let editorReturnFocus: HTMLElement | null = null;
 
     const newId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
     const blankCourse = (): CourseDraft => ({
@@ -250,6 +302,38 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return Number.isFinite(number) ? number : null;
     }
 
+    function isMobileCourseLayout() {
+      return window.matchMedia('(max-width: 640px)').matches;
+    }
+
+    function renderCourseSummary(container: ParentNode, course: CourseDraft, index: number) {
+      const name = course.name.trim() || '未命名课程';
+      const indexNode = container.querySelector<HTMLElement>('[data-summary="index"]');
+      const nameNode = container.querySelector<HTMLElement>('[data-summary="name"]');
+      const countsNode = container.querySelector<HTMLElement>('[data-summary="counts"]');
+      const happinessNode = container.querySelector<HTMLElement>('[data-summary="happiness"]');
+      const summaryButton = container.querySelector<HTMLButtonElement>('.course-summary');
+      if (indexNode) indexNode.textContent = String(index + 1).padStart(2, '0');
+      if (nameNode) {
+        nameNode.textContent = name;
+        nameNode.toggleAttribute('data-empty', !course.name.trim());
+      }
+      if (countsNode) countsNode.textContent = `${course.capacity ?? '—'}/${course.enrolled ?? '—'}`;
+      if (happinessNode) happinessNode.textContent = course.happiness === null ? '—' : String(course.happiness);
+      if (summaryButton) summaryButton.setAttribute('aria-label', `编辑${name}`);
+    }
+
+    function updateRenderedCourse(course: CourseDraft) {
+      const row = courseList?.querySelector<HTMLElement>(`[data-course-id="${CSS.escape(course.id)}"]`);
+      if (!row) return;
+      const index = courses.findIndex((item) => item.id === course.id);
+      renderCourseSummary(row, course, index);
+      (['name', 'capacity', 'enrolled', 'happiness'] as const).forEach((field) => {
+        const input = row.querySelector<HTMLInputElement>(`[data-field="${field}"]`);
+        if (input) input.value = course[field] === null ? '' : String(course[field]);
+      });
+    }
+
     function markResultsStale() {
       summary?.setAttribute('hidden', '');
       courseList?.querySelectorAll<HTMLElement>('[data-result="points"]').forEach((node) => node.textContent = '—');
@@ -258,7 +342,68 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         node.dataset.state = 'pending';
         delete node.dataset.compact;
       });
+      courseList?.querySelectorAll<HTMLElement>('[data-summary="result"]').forEach((node) => node.textContent = '—');
       if (formStatus) formStatus.textContent = '更改已保存，点击计算更新结果。';
+    }
+
+    function clearCourseEditErrors() {
+      courseEditDialog?.querySelectorAll('.edit-field--invalid').forEach((field) => field.classList.remove('edit-field--invalid'));
+      courseEditDialog?.querySelectorAll<HTMLElement>('[data-edit-error]').forEach((error) => error.textContent = '');
+    }
+
+    function showCourseEditError(field: NumericField, message: string) {
+      const input = courseEditDialog?.querySelector<HTMLInputElement>(`#edit-course-${field}`);
+      const wrapper = input?.closest('.edit-field');
+      const error = wrapper?.querySelector<HTMLElement>('[data-edit-error]');
+      wrapper?.classList.add('edit-field--invalid');
+      if (error) error.textContent = message;
+    }
+
+    function openCourseEditor(courseId: string, invalidField?: NumericField, errorMessage?: string) {
+      const course = courses.find((item) => item.id === courseId);
+      if (!course || !courseEditDialog || !editCourseName || !editCourseCapacity || !editCourseEnrolled || !editCourseHappiness) return;
+      editingCourseId = courseId;
+      editorReturnFocus = courseList?.querySelector<HTMLElement>(`[data-course-id="${CSS.escape(courseId)}"] .course-summary`) ?? null;
+      editCourseName.value = course.name;
+      editCourseCapacity.value = course.capacity === null ? '' : String(course.capacity);
+      editCourseEnrolled.value = course.enrolled === null ? '' : String(course.enrolled);
+      editCourseHappiness.value = course.happiness === null ? '' : String(course.happiness);
+      clearCourseEditErrors();
+      if (invalidField && errorMessage) showCourseEditError(invalidField, errorMessage);
+      courseEditDialog.showModal();
+      const focusTarget = invalidField
+        ? courseEditDialog.querySelector<HTMLInputElement>(`#edit-course-${invalidField}`)
+        : editCourseName;
+      requestAnimationFrame(() => focusTarget?.focus());
+    }
+
+    function closeCourseEditor() {
+      if (!courseEditDialog?.open) return;
+      const returnFocus = editorReturnFocus;
+      editingCourseId = null;
+      editorReturnFocus = null;
+      courseEditDialog.close();
+      if (returnFocus?.isConnected) requestAnimationFrame(() => returnFocus.focus());
+    }
+
+    function updateEditedCourse(field: 'name' | NumericField, value: string) {
+      const course = courses.find((item) => item.id === editingCourseId);
+      if (!course) return;
+      if (field === 'name') course.name = value;
+      else course[field] = parseNumber(value);
+      if (field !== 'name') {
+        const input = courseEditDialog?.querySelector<HTMLInputElement>(`#edit-course-${field}`);
+        input?.closest('.edit-field')?.classList.remove('edit-field--invalid');
+        const error = input?.closest('.edit-field')?.querySelector<HTMLElement>('[data-edit-error]');
+        if (error) error.textContent = '';
+        const rowInput = courseList?.querySelector<HTMLInputElement>(`[data-course-id="${CSS.escape(course.id)}"] [data-field="${field}"]`);
+        rowInput?.closest('.field')?.classList.remove('field--invalid');
+        const rowError = rowInput?.closest('.field')?.querySelector<HTMLElement>('[data-error]');
+        if (rowError) rowError.textContent = '';
+      }
+      saveCourses();
+      markResultsStale();
+      updateRenderedCourse(course);
     }
 
     let parsedImport: { courses: ImportedCourse[]; skipped: number } = { courses: [], skipped: 0 };
@@ -333,10 +478,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     function addCourse() {
-      courses.push(blankCourse());
+      const course = blankCourse();
+      courses.push(course);
       saveCourses();
       renderCourses();
-      courseList?.querySelector<HTMLInputElement>('.course-row:last-child [data-field="name"]')?.focus();
+      markResultsStale();
+      if (isMobileCourseLayout()) openCourseEditor(course.id);
+      else courseList?.querySelector<HTMLInputElement>('.course-row:last-child [data-field="name"]')?.focus();
     }
 
     function clearCourses() {
@@ -363,6 +511,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (!row || !indexNode) return;
         row.dataset.courseId = course.id;
         indexNode.textContent = String(index + 1).padStart(2, '0');
+        renderCourseSummary(fragment, course, index);
+
+        const summaryButton = fragment.querySelector<HTMLButtonElement>('.course-summary');
+        summaryButton?.addEventListener('click', () => openCourseEditor(course.id));
 
         const bindField = (field: keyof Pick<CourseDraft, 'name' | 'capacity' | 'enrolled' | 'happiness'>) => {
           const input = fragment.querySelector<HTMLInputElement>(`[data-field="${field}"]`);
@@ -376,6 +528,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             if (error) error.textContent = '';
             saveCourses();
             markResultsStale();
+            renderCourseSummary(row, course, index);
           });
         };
         bindField('name');
@@ -388,6 +541,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           courses = courses.filter((item) => item.id !== course.id);
           saveCourses();
           renderCourses();
+          markResultsStale();
           if (formStatus) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
         });
         courseList.append(fragment);
@@ -406,6 +560,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function calculate() {
       if (!courseList || !courses.length) return;
       let firstInvalid: HTMLInputElement | null | undefined;
+      let firstIssue: { courseId: string; field: NumericField; message: string } | undefined;
       const validCourses: CourseInput[] = [];
 
       courses.forEach((course) => {
@@ -414,15 +569,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         row.querySelectorAll('.field--invalid').forEach((field) => field.classList.remove('field--invalid'));
         row.querySelectorAll<HTMLElement>('[data-error]').forEach((error) => error.textContent = '');
 
-        if (!Number.isInteger(course.capacity) || (course.capacity ?? 0) <= 0) {
-          firstInvalid ??= showError(row, 'capacity', '请输入大于 0 的整数');
-        }
-        if (!Number.isInteger(course.enrolled) || (course.enrolled ?? -1) < 0) {
-          firstInvalid ??= showError(row, 'enrolled', '请输入非负整数');
-        }
-        if (course.happiness === null || course.happiness <= 0) {
-          firstInvalid ??= showError(row, 'happiness', '请输入正数');
-        }
+        const flagIssue = (field: NumericField, message: string) => {
+          firstInvalid ??= showError(row, field, message);
+          firstIssue ??= { courseId: course.id, field, message };
+        };
+        if (!Number.isInteger(course.capacity) || (course.capacity ?? 0) <= 0) flagIssue('capacity', '请输入大于 0 的整数');
+        if (!Number.isInteger(course.enrolled) || (course.enrolled ?? -1) < 0) flagIssue('enrolled', '请输入非负整数');
+        if (course.happiness === null || course.happiness <= 0) flagIssue('happiness', '请输入正数');
 
         if (Number.isInteger(course.capacity) && course.capacity! > 0
           && Number.isInteger(course.enrolled) && course.enrolled! >= 0
@@ -434,7 +587,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (firstInvalid || validCourses.length !== courses.length) {
         if (formStatus) formStatus.textContent = '请先修正标出的课程信息。';
         summary?.setAttribute('hidden', '');
-        firstInvalid?.focus();
+        if (isMobileCourseLayout() && firstIssue) {
+          openCourseEditor(firstIssue.courseId, firstIssue.field, firstIssue.message);
+        } else {
+          firstInvalid?.focus();
+        }
         return;
       }
 
@@ -443,6 +600,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         const row = courseList.querySelector<HTMLElement>(`[data-course-id="${CSS.escape(course.id)}"]`);
         const points = row?.querySelector<HTMLElement>('[data-result="points"]');
         const probability = row?.querySelector<HTMLElement>('[data-result="probability"]');
+        const summaryResult = row?.querySelector<HTMLElement>('[data-summary="result"]');
         if (points) points.textContent = String(course.points);
         if (probability) {
           probability.textContent = course.needsLottery
@@ -450,6 +608,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             : '无需抽签';
           probability.dataset.state = course.needsLottery ? 'lottery' : 'safe';
           probability.dataset.compact = course.needsLottery ? `${Math.round(course.probability)}%` : '无需';
+        }
+        if (summaryResult) {
+          summaryResult.textContent = course.needsLottery
+            ? `${course.points}/${Math.round(course.probability)}%`
+            : '0/无需';
         }
         row?.style.setProperty('--result-order', String(index));
       });
@@ -481,6 +644,33 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     });
     importDialog?.addEventListener('click', (event) => {
       if (event.target === importDialog) closeImportDialog();
+    });
+    editCourseName?.addEventListener('input', () => updateEditedCourse('name', editCourseName.value));
+    editCourseCapacity?.addEventListener('input', () => updateEditedCourse('capacity', editCourseCapacity.value));
+    editCourseEnrolled?.addEventListener('input', () => updateEditedCourse('enrolled', editCourseEnrolled.value));
+    editCourseHappiness?.addEventListener('input', () => updateEditedCourse('happiness', editCourseHappiness.value));
+    document.querySelector('#close-course-edit')?.addEventListener('click', closeCourseEditor);
+    document.querySelector('#finish-course-edit')?.addEventListener('click', closeCourseEditor);
+    deleteEditedCourse?.addEventListener('click', () => {
+      const course = courses.find((item) => item.id === editingCourseId);
+      if (!course) return;
+      const index = courses.findIndex((item) => item.id === course.id);
+      courses = courses.filter((item) => item.id !== course.id);
+      saveCourses();
+      renderCourses();
+      markResultsStale();
+      if (formStatus) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
+      closeCourseEditor();
+    });
+    courseEditDialog?.addEventListener('click', (event) => {
+      if (event.target === courseEditDialog) closeCourseEditor();
+    });
+    courseEditDialog?.addEventListener('close', () => {
+      if (courseEditDialog.open) return;
+      const returnFocus = editorReturnFocus;
+      editingCourseId = null;
+      editorReturnFocus = null;
+      if (returnFocus?.isConnected) requestAnimationFrame(() => returnFocus.focus());
     });
     renderCourses();
   </script>
@@ -538,25 +728,26 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .course-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
     .field-help { margin: 14px 0 22px; color: var(--muted); font-size: .9rem; line-height: 1.65; }
     .course-grid-head { display: none; }
-    .course-list { display: grid; gap: 12px; }
+    .course-list { display: grid; gap: 8px; }
 
     .course-row {
       display: grid;
       grid-template-columns: 36px minmax(150px, 1.5fr) repeat(3, minmax(100px, .75fr)) minmax(130px, 1fr) auto;
       align-items: start;
-      gap: 12px;
-      padding: 16px;
+      gap: 10px;
+      padding: 12px 14px;
       border: 1px solid var(--line);
       border-radius: 9px;
       background: rgba(248, 251, 255, .76);
     }
-    .course-index { padding-top: 30px; color: rgba(20, 103, 216, .7); font-family: ui-monospace, monospace; font-size: .8rem; font-weight: 750; }
-    .field { display: grid; gap: 7px; min-width: 0; color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .course-summary { display: none; }
+    .course-index { padding-top: 26px; color: rgba(20, 103, 216, .7); font-family: ui-monospace, monospace; font-size: .8rem; font-weight: 750; }
+    .field { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: .78rem; font-weight: 700; }
     .field em { margin-left: 3px; color: var(--accent); font-size: .68rem; font-style: normal; font-weight: 800; }
     .field input {
       width: 100%;
       min-width: 0;
-      height: 42px;
+      height: 38px;
       padding: 0 11px;
       border: 1px solid #cfdeed;
       border-radius: 7px;
@@ -574,13 +765,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .field small { min-height: 0; color: #bf3f45; font-size: .72rem; font-weight: 600; line-height: 1.3; }
     .field--invalid input { border-color: #d95b61; background: #fffafa; }
 
-    .course-result { display: grid; gap: 4px; padding-top: 1px; }
+    .course-result { display: grid; gap: 3px; padding-top: 1px; }
     .course-result > span { color: var(--muted); font-size: .78rem; font-weight: 700; }
-    .course-result strong { color: var(--primary-strong); font-size: 1.7rem; line-height: 1.2; }
+    .course-result strong { color: var(--primary-strong); font-size: 1.55rem; line-height: 1.15; }
     .course-result small {
       display: inline-flex;
       width: fit-content;
-      padding: 4px 7px;
+      padding: 3px 6px;
       border-radius: 999px;
       font-size: .78rem;
       font-weight: 800;
@@ -604,7 +795,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .clear-button { padding: 10px 14px; border: 1px solid #bd3e47; background: #c94b54; color: #fff; box-shadow: 0 8px 18px rgba(191, 63, 69, .16); }
     .clear-button:hover { border-color: #9f3038; background: #ad3740; }
     .clear-button:disabled { cursor: not-allowed; opacity: .4; }
-    .delete-course { margin-top: 25px; padding: 8px 9px; border: 0; background: transparent; color: #a64a50; font-size: .82rem; }
+    .delete-course { margin-top: 21px; padding: 8px 9px; border: 0; background: transparent; color: #a64a50; font-size: .82rem; }
     .delete-course:hover { background: rgba(191, 63, 69, .08); }
 
     .empty-courses { padding: 38px 20px; border: 1px dashed rgba(20, 103, 216, .25); border-radius: 9px; text-align: center; }
@@ -668,6 +859,45 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .import-preview li span { flex: 0 0 auto; color: var(--muted); font-size: .78rem; }
     .import-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
+    .course-edit-dialog {
+      width: min(520px, calc(100% - 28px));
+      padding: 24px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 28px 90px rgba(20, 45, 75, .28);
+    }
+    .course-edit-dialog::backdrop { background: rgba(16, 31, 50, .46); backdrop-filter: blur(3px); }
+    .course-edit-head { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .course-edit-head h2 { margin: 0; font-size: 1.45rem; }
+    .course-edit-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; margin-top: 20px; }
+    .edit-field { display: grid; gap: 6px; min-width: 0; color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .edit-field--name { grid-column: 1 / -1; }
+    .edit-field em { margin-left: 3px; color: var(--accent); font-size: .68rem; font-style: normal; }
+    .edit-field input {
+      width: 100%;
+      min-width: 0;
+      height: 42px;
+      padding: 0 10px;
+      border: 1px solid #cfdeed;
+      border-radius: 7px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: .94rem;
+      font-weight: 500;
+    }
+    .edit-field input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+    .edit-field input[type="number"]::-webkit-inner-spin-button,
+    .edit-field input[type="number"]::-webkit-outer-spin-button { margin: 0; appearance: none; }
+    .edit-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(20, 103, 216, .1); }
+    .edit-field small { min-height: 0; color: #bf3f45; font-size: .68rem; line-height: 1.3; }
+    .edit-field--invalid input { border-color: #d95b61; background: #fffafa; }
+    .course-edit-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; }
+
     .summary {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 220px)) minmax(220px, 1fr);
@@ -709,40 +939,46 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       .calculator-head .secondary-button,
       .calculator-head .clear-button { padding: 9px 4px; font-size: .76rem; }
       .field-help { margin-bottom: 16px; }
-      .course-row {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        gap: 8px 4px;
+      .course-grid-head,
+      .course-summary {
+        grid-template-columns: 20px minmax(0, 1fr) 48px 34px 58px 10px;
+        align-items: center;
+        gap: 4px;
       }
-      .course-grid-head { display: none; }
+      .course-grid-head {
+        display: grid;
+        padding: 0 8px 6px;
+        color: var(--muted);
+        font-size: .6rem;
+        font-weight: 750;
+        line-height: 1.2;
+        text-align: center;
+      }
+      .course-grid-head[hidden] { display: none; }
+      .course-grid-head span:nth-child(2) { text-align: left; }
       .course-list { gap: 6px; }
-      .course-row { align-items: end; padding: 10px; border-radius: 7px; }
-      .course-index { grid-column: 1; grid-row: 1; align-self: end; padding: 0 0 10px; font-size: .65rem; text-align: center; }
-      .field,
-      .field--name,
-      .field:not(.field--name) { display: grid; grid-column: auto; min-width: 0; gap: 3px; }
-      .field--name { grid-column: 2 / 8; grid-row: 1; }
-      .course-row > .field--capacity { grid-column: 1 / 3; grid-row: 2; }
-      .course-row > .field--enrolled { grid-column: 3 / 5; grid-row: 2; }
-      .course-row > .field--happiness { grid-column: 5 / 7; grid-row: 2; }
-      .field > span { display: block; font-size: .61rem; line-height: 1.2; text-align: center; }
-      .field--name > span { text-align: left; }
-      .field > small { display: none; }
-      .field input { height: 34px; padding: 0 3px; border-radius: 5px; font-size: .72rem; text-align: center; }
-      .field input[data-field="name"]::placeholder,
-      .field input[data-field="happiness"]::placeholder { color: transparent; }
-      .field--name input { text-align: left; }
-      .course-result { display: grid; grid-column: 7 / 9; grid-row: 2; gap: 1px; min-width: 0; padding: 0; text-align: center; }
-      .course-result > span { display: block; font-size: 0; line-height: 1.2; }
-      .course-result > span::after { content: "投点 / 中签"; font-size: .61rem; }
-      .course-result strong { font-size: 1.12rem; }
-      .course-result small { display: inline-block; max-width: 100%; padding: 2px 3px; overflow: hidden; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
-      .course-result small[data-state="lottery"]::before { content: none; }
-      .course-result small[data-state="pending"] { display: none; }
-      .course-result small:not([data-state="pending"]) { font-size: 0; }
-      .course-result small:not([data-state="pending"])::after { content: attr(data-compact); font-size: .61rem; }
-      .delete-course { grid-column: 8; grid-row: 1; align-self: end; justify-self: center; margin: 0 0 7px; padding: 3px; font-size: 0; }
-      .delete-course span { display: none; }
-      .delete-course::before { content: "×"; font-size: 1rem; line-height: 1; }
+      .course-row { display: block; padding: 0; overflow: hidden; border-radius: 7px; }
+      .course-row > :not(.course-summary) { display: none; }
+      .course-summary {
+        display: grid;
+        width: 100%;
+        min-height: 48px;
+        padding: 9px 8px;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        text-align: center;
+      }
+      .course-summary:hover { background: rgba(20, 103, 216, .04); }
+      .course-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+      .course-summary__index { color: rgba(20, 103, 216, .72); font: 750 .61rem/1 ui-monospace, monospace; }
+      .course-summary__name { overflow: hidden; font-size: .74rem; line-height: 1.25; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+      .course-summary__name[data-empty] { color: var(--muted); font-weight: 600; }
+      .course-summary__counts,
+      .course-summary__happiness { color: var(--muted); font: 700 .66rem/1.2 ui-monospace, monospace; white-space: nowrap; }
+      .course-summary__result { color: var(--primary-strong); font-size: .68rem; line-height: 1.2; white-space: nowrap; }
+      .course-summary__chevron { color: var(--muted); font-size: 1rem; line-height: 1; }
       .actions { align-items: stretch; flex-direction: column; }
       .primary-button { width: 100%; }
       .summary { grid-template-columns: 1fr 1fr; gap: 18px 12px; padding: 18px; }
@@ -751,6 +987,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       .import-preview li { display: grid; gap: 3px; }
       .import-actions .primary-button,
       .import-actions .secondary-button { flex: 1 1 0; }
+      .course-edit-dialog {
+        inset: auto 0 0;
+        width: 100%;
+        max-width: none;
+        max-height: calc(100dvh - 20px);
+        margin: 0;
+        padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+        border-width: 1px 0 0;
+        border-radius: 16px 16px 0 0;
+      }
+      .course-edit-fields { gap: 14px 8px; }
+      .edit-field input { height: 44px; padding: 0 8px; }
+      .course-edit-actions .primary-button { width: auto; flex: 1 1 auto; }
     }
   </style>
 </BaseLayout>
