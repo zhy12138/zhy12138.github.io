@@ -37,7 +37,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
       </div>
 
-      <p class="field-help">快乐值表示你想选这门课的程度，可以填学分或任意正数；数值越大，工具越优先照顾这门课。</p>
+      <p class="field-help">快乐值表示你想选这门课的程度，可以填学分或任意正数；数值越大，工具越优先照顾这门课。超额且标记为“推荐”的课程无需投点，会按 99 点权重估算中签率。</p>
       <div class="course-grid-head" id="course-grid-head" hidden aria-hidden="true">
         <span>#</span>
         <span>课程</span>
@@ -150,7 +150,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <article class="course-row">
       <button class="course-summary" type="button">
         <span class="course-summary__index" data-summary="index"></span>
-        <strong class="course-summary__name" data-summary="name"></strong>
+        <strong class="course-summary__name" data-summary="name"><span data-summary="name-text"></span></strong>
         <span class="course-summary__counts" data-summary="counts"></span>
         <span class="course-summary__happiness" data-summary="happiness"></span>
         <strong class="course-summary__result" data-summary="result">—</strong>
@@ -196,6 +196,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       capacity: number | null;
       enrolled: number | null;
       happiness: number | null;
+      recommended: boolean;
     };
 
     type ImportedCourse = {
@@ -205,6 +206,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       name: string;
       capacity: number;
       enrolled: number;
+      recommended: boolean;
     };
 
     type NumericField = 'capacity' | 'enrolled' | 'happiness';
@@ -244,6 +246,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       capacity: null,
       enrolled: null,
       happiness: null,
+      recommended: false,
     });
 
     function isNullableNumber(value: unknown): value is number | null {
@@ -258,7 +261,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         && typeof course.name === 'string'
         && isNullableNumber(course.capacity)
         && isNullableNumber(course.enrolled)
-        && isNullableNumber(course.happiness);
+        && isNullableNumber(course.happiness)
+        && (course.recommended === undefined || typeof course.recommended === 'boolean');
     }
 
     function loadCourses(): CourseDraft[] {
@@ -278,6 +282,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           capacity: course.capacity,
           enrolled: course.enrolled,
           happiness: course.happiness,
+          recommended: course.recommended === true,
         }));
       } catch {
         return [blankCourse()];
@@ -309,7 +314,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function renderCourseSummary(container: ParentNode, course: CourseDraft, index: number) {
       const name = course.name.trim() || '未命名课程';
       const indexNode = container.querySelector<HTMLElement>('[data-summary="index"]');
-      const nameNode = container.querySelector<HTMLElement>('[data-summary="name"]');
+      const nameNode = container.querySelector<HTMLElement>('[data-summary="name-text"]');
       const countsNode = container.querySelector<HTMLElement>('[data-summary="counts"]');
       const happinessNode = container.querySelector<HTMLElement>('[data-summary="happiness"]');
       const summaryButton = container.querySelector<HTMLButtonElement>('.course-summary');
@@ -334,7 +339,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       });
     }
 
-    function markResultsStale() {
+    function markResultsStale(saved = true) {
       summary?.setAttribute('hidden', '');
       courseList?.querySelectorAll<HTMLElement>('[data-result="points"]').forEach((node) => node.textContent = '—');
       courseList?.querySelectorAll<HTMLElement>('[data-result="probability"]').forEach((node) => {
@@ -343,7 +348,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         delete node.dataset.compact;
       });
       courseList?.querySelectorAll<HTMLElement>('[data-summary="result"]').forEach((node) => node.textContent = '—');
-      if (formStatus) formStatus.textContent = '更改已保存，点击计算更新结果。';
+      if (formStatus && saved) formStatus.textContent = '更改已保存，点击计算更新结果。';
     }
 
     function clearCourseEditErrors() {
@@ -401,8 +406,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         const rowError = rowInput?.closest('.field')?.querySelector<HTMLElement>('[data-error]');
         if (rowError) rowError.textContent = '';
       }
-      saveCourses();
-      markResultsStale();
+      const saved = saveCourses();
+      markResultsStale(saved);
       updateRenderedCourse(course);
     }
 
@@ -465,10 +470,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         capacity: course.capacity,
         enrolled: course.enrolled,
         happiness: course.happiness,
+        recommended: course.recommended,
       }));
       const saved = saveCourses();
       renderCourses();
-      markResultsStale();
+      markResultsStale(saved);
       if (formStatus && saved) {
         formStatus.textContent = shouldPreserveHappiness && preservedCount > 0
           ? `已覆盖并导入 ${parsedImport.courses.length} 门课程，保留了 ${preservedCount} 门课程的快乐值。`
@@ -480,9 +486,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function addCourse() {
       const course = blankCourse();
       courses.push(course);
-      saveCourses();
+      const saved = saveCourses();
       renderCourses();
-      markResultsStale();
+      markResultsStale(saved);
       if (isMobileCourseLayout()) openCourseEditor(course.id);
       else courseList?.querySelector<HTMLInputElement>('.course-row:last-child [data-field="name"]')?.focus();
     }
@@ -490,10 +496,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function clearCourses() {
       if (!courses.length || !window.confirm('确定清空所有课程吗？此操作会同步清除本地保存的课程。')) return;
       courses = [];
-      saveCourses();
+      const saved = saveCourses();
       renderCourses();
       summary?.setAttribute('hidden', '');
-      if (formStatus) formStatus.textContent = '课程已清空。';
+      if (formStatus && saved) formStatus.textContent = '课程已清空。';
     }
 
     function renderCourses() {
@@ -526,8 +532,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             input.closest('.field')?.classList.remove('field--invalid');
             const error = input.closest('.field')?.querySelector<HTMLElement>('[data-error]');
             if (error) error.textContent = '';
-            saveCourses();
-            markResultsStale();
+            const saved = saveCourses();
+            markResultsStale(saved);
             renderCourseSummary(row, course, index);
           });
         };
@@ -539,10 +545,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         const deleteButton = fragment.querySelector<HTMLButtonElement>('.delete-course');
         deleteButton?.addEventListener('click', () => {
           courses = courses.filter((item) => item.id !== course.id);
-          saveCourses();
+          const saved = saveCourses();
           renderCourses();
-          markResultsStale();
-          if (formStatus) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
+          markResultsStale(saved);
+          if (formStatus && saved) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
         });
         courseList.append(fragment);
       });
@@ -601,7 +607,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         const points = row?.querySelector<HTMLElement>('[data-result="points"]');
         const probability = row?.querySelector<HTMLElement>('[data-result="probability"]');
         const summaryResult = row?.querySelector<HTMLElement>('[data-summary="result"]');
-        if (points) points.textContent = String(course.points);
+        if (points) points.textContent = course.recommended
+          ? '推荐'
+          : String(course.points);
         if (probability) {
           probability.textContent = course.needsLottery
             ? `${course.probability.toFixed(2)}%`
@@ -610,14 +618,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           probability.dataset.compact = course.needsLottery ? `${Math.round(course.probability)}%` : '无需';
         }
         if (summaryResult) {
-          summaryResult.textContent = course.needsLottery
+          summaryResult.textContent = course.recommended
+            ? course.needsLottery
+              ? `推荐/${Math.round(course.probability)}%`
+              : '推荐/无需'
+            : course.needsLottery
             ? `${course.points}/${Math.round(course.probability)}%`
             : '0/无需';
         }
         row?.style.setProperty('--result-order', String(index));
       });
 
-      const lotteryCourses = recommendations.filter((course) => course.needsLottery);
+      const lotteryCourses = recommendations.filter((course) => course.needsLottery && !course.recommended);
+      const recommendedLotteryCourses = recommendations.filter((course) => course.needsLottery && course.recommended);
       const totalPoints = lotteryCourses.reduce((total, course) => total + course.points, 0);
       const totalHappiness = recommendations.reduce((total, course) => total + course.expectedHappiness, 0);
       if (allocatedPoints) allocatedPoints.textContent = `${totalPoints} / 99`;
@@ -626,6 +639,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (formStatus) {
         formStatus.textContent = lotteryCourses.length
           ? '计算完成。推荐点数合计为 99。'
+          : recommendedLotteryCourses.length
+          ? '计算完成。推荐课程已按 99 点权重估算中签率。'
           : '这些课程当前都未超额，无需分配意愿点。';
       }
     }
@@ -656,10 +671,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (!course) return;
       const index = courses.findIndex((item) => item.id === course.id);
       courses = courses.filter((item) => item.id !== course.id);
-      saveCourses();
+      const saved = saveCourses();
       renderCourses();
-      markResultsStale();
-      if (formStatus) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
+      markResultsStale(saved);
+      if (formStatus && saved) formStatus.textContent = `${course.name.trim() || `课程 ${index + 1}`}已删除。`;
       closeCourseEditor();
     });
     courseEditDialog?.addEventListener('click', (event) => {
@@ -974,7 +989,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       .course-summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
       .course-summary__index { color: rgba(20, 103, 216, .72); font: 750 .61rem/1 ui-monospace, monospace; }
       .course-summary__name { overflow: hidden; font-size: .74rem; line-height: 1.25; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
-      .course-summary__name[data-empty] { color: var(--muted); font-weight: 600; }
+      .course-summary__name [data-empty] { color: var(--muted); font-weight: 600; }
       .course-summary__counts,
       .course-summary__happiness { color: var(--muted); font: 700 .66rem/1.2 ui-monospace, monospace; white-space: nowrap; }
       .course-summary__result { color: var(--primary-strong); font-size: .68rem; line-height: 1.2; white-space: nowrap; }

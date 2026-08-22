@@ -4,6 +4,7 @@ export interface CourseInput {
   capacity: number;
   enrolled: number;
   happiness: number;
+  recommended?: boolean;
 }
 
 export interface CourseRecommendation extends CourseInput {
@@ -41,10 +42,29 @@ export function recommendCoursePoints(courses: CourseInput[]): CourseRecommendat
     needsLottery: course.enrolled > course.capacity,
   }));
   const lotteryIndexes = recommendations
-    .map((course, index) => course.needsLottery ? index : -1)
+    .map((course, index) => course.needsLottery && !course.recommended ? index : -1)
     .filter((index) => index >= 0);
 
-  if (!lotteryIndexes.length) return recommendations;
+  const calculateRecommendedProbability = () => {
+    recommendations.forEach((course) => {
+      if (!course.recommended || !course.needsLottery) return;
+      const average = estimatedAveragePoints(course.capacity, course.enrolled);
+      const lostHappiness = estimatedLostHappiness(
+        course.happiness,
+        course.capacity,
+        course.enrolled,
+        (TOTAL_POINTS + 0.5) / average,
+      );
+      course.points = TOTAL_POINTS;
+      course.expectedHappiness = course.happiness - lostHappiness;
+      course.probability = course.expectedHappiness / course.happiness * 100;
+    });
+  };
+
+  if (!lotteryIndexes.length) {
+    calculateRecommendedProbability();
+    return recommendations;
+  }
 
   const lotteryCourses = lotteryIndexes.map((index) => recommendations[index]);
   const averages = lotteryCourses.map((course) => estimatedAveragePoints(course.capacity, course.enrolled));
@@ -105,6 +125,8 @@ export function recommendCoursePoints(courses: CourseInput[]): CourseRecommendat
     course.expectedHappiness = course.happiness - lostHappiness;
     course.probability = course.expectedHappiness / course.happiness * 100;
   });
+
+  calculateRecommendedProbability();
 
   return recommendations;
 }

@@ -20,6 +20,10 @@ test('parses the sanitized course-selection fixture', async () => {
     result.courses.map((course) => [course.sourceKey, course.name, course.capacity, course.enrolled]),
     expected,
   );
+  assert.deepEqual(
+    result.courses.map((course) => course.recommended),
+    [false, true, false, true, false, false],
+  );
 });
 
 test('parser rejects unrelated pasted text', () => {

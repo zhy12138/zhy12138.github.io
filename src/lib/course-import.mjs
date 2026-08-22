@@ -6,6 +6,7 @@
  *   name: string,
  *   capacity: number,
  *   enrolled: number,
+ *   recommended: boolean,
  * }} ImportedCourse
  */
 
@@ -42,6 +43,7 @@ export function parseCourseSelectionText(input) {
       name,
       capacity: Number(countMatch[1]),
       enrolled: Number(countMatch[2]),
+      recommended: /(?:^|\t)推荐(?:\t|\n|$)/m.test(block),
     });
   });
 
